@@ -1,4 +1,4 @@
-#<h1 align='center'>
+<h1 align='center'>
   Exploring the performance of machine learning models
 </h1>
 

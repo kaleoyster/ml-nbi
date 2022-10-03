@@ -95,3 +95,111 @@ def remove_duplicates(_df, column_name='structureNumbers'):
         temp.append(grouped_df)
     new_df = pd.concat(temp)
     return new_df
+
+def preprocess():
+    csv_file = '../../data/nebraska_deep.csv'
+    df = read_csv(csv_file)
+
+    # Remove null values:
+    df = df.dropna(subset=['deck',
+                           'substructure',
+                           'deckNumberIntervention',
+                           'subNumberIntervention',
+                           'supNumberIntervention'
+                          ])
+
+    df = remove_duplicates(df)
+
+    # Remove values encoded as N:
+    df = df[~df['deck'].isin(['N'])]
+    df = df[~df['substructure'].isin(['N'])]
+    df = df[~df['superstructure'].isin(['N'])]
+    df = df[~df['material'].isin(['N'])]
+    df = df[~df['scourCriticalBridges'].isin(['N', 'U', np.nan])]
+    df = df[~df['deckStructureType'].isin(['N', 'U'])]
+
+    # Fill the null values with -1:
+    df.snowfall.fillna(value=-1, inplace=True)
+    df.precipitation.fillna(value=-1, inplace=True)
+    df.freezethaw.fillna(value=-1, inplace=True)
+
+    df.toll.fillna(value=-1, inplace=True)
+    df.designatedInspectionFrequency.fillna(value=-1, inplace=True)
+    df.deckStructureType.fillna(value=-1, inplace=True)
+    df.typeOfDesign.fillna(value=-1, inplace=True)
+
+    # Normalize features:
+    columns_normalize = [
+                        "deck",
+                        "yearBuilt",
+                        "superstructure",
+                        "substructure",
+                        "averageDailyTraffic",
+                        "avgDailyTruckTraffic",
+                        "supNumberIntervention",
+                        "subNumberIntervention",
+                        "deckNumberIntervention",
+                        "latitude",
+                        "longitude",
+                        "skew",
+                        "numberOfSpansInMainUnit",
+                        "lengthOfMaximumSpan",
+                        "structureLength",
+                        "bridgeRoadwayWithCurbToCurb",
+                        "operatingRating",
+                        "scourCriticalBridges",
+                        "lanesOnStructure",
+                        ]
+
+    # Select final columns:
+    columns_final = [
+                    "deck",
+                    "yearBuilt",
+                    "superstructure",
+                    "substructure",
+                    "averageDailyTraffic",
+                    "avgDailyTruckTraffic",
+                    "material",
+                    "designLoad",
+                    "snowfall",
+                    "freezethaw",
+                    "supNumberIntervention",
+                    "subNumberIntervention",
+                    "deckNumberIntervention",
+
+                    "latitude",
+                    "longitude",
+                    "skew",
+                    "numberOfSpansInMainUnit",
+                    "lengthOfMaximumSpan",
+                    "structureLength",
+                    "bridgeRoadwayWithCurbToCurb",
+                    "operatingRating",
+                    "scourCriticalBridges",
+                    "lanesOnStructure",
+
+                    "toll",
+                    "designatedInspectionFrequency",
+                    "deckStructureType",
+                    "typeOfDesign",
+
+                    "deckDeteriorationScore",
+                    "subDeteriorationScore",
+                    "supDeteriorationScore"
+                ]
+
+    cols = columns_normalize
+    data_scaled = normalize(df, columns_normalize)
+    X = data_scaled[columns_final]
+    X = remove_null_values(X)
+
+    deckLabels = X['deckDeteriorationScore']
+    y = create_label(deckLabels)
+
+    # Convert them into arrays
+    X = np.array(X)
+    y = np.array(y)
+
+    return X, y, cols
+
+

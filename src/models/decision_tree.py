@@ -14,6 +14,14 @@ from sklearn.tree import export_graphviz
 from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
+from sklearn.model_selection import KFold
+from sklearn.tree import DecisionTreeClassifier
+
+# Metrics and stats
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import cohen_kappa_score
 
 def read_csv(csv_file):
     """
@@ -107,7 +115,6 @@ def tree_utility(train_x, trainy,
         model: Decision Tree Model
     """
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
-    #model = HistGradientBoostingClassifier(categorical_features=[], max_depth=maxDepth)
     model.fit(train_x, trainy)
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
@@ -368,13 +375,33 @@ def main():
                     "supDeteriorationScore"
                 ]
 
+    cols = columns_normalize
     data_scaled = normalize(df, columns_normalize)
-    data_scaled = data_scaled[columns_final]
-    data_scaled = remove_null_values(data_scaled)
+    X = data_scaled[columns_final]
+    X = remove_null_values(X)
 
-    deckLabels = data_scaled['deckDeteriorationScore']
-    labels = create_label(deckLabels)
-    print(labels)
+    deckLabels = X['deckDeteriorationScore']
+    y = create_label(deckLabels)
+
+    # Convert them into arrays
+    X = np.array(X)
+    y = np.array(y)
+    kfold = KFold(5, shuffle=True, random_state=1)
+
+    # X is the dataset
+    for foldTrainX, foldTestX in kfold.split(X):
+        trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
+                                          X[foldTestX], y[foldTestX]
+
+        # structure numbers
+        # Gini
+        gacc, gcm, gcr, gkappa, gmodel, gfi = tree_utility(trainX, trainy,
+                                                 testX, testy, cols,
+                                                 criteria='entropy',
+                                                 max_depth=5)
+        print(gcr)
+
+
     # TODO: Need to create the positive and negative
 
     #X, y = data_scaled[columns_final], data_scaled[label]

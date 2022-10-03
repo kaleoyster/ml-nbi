@@ -22,6 +22,20 @@ def read_csv(csv_file):
     _df = pd.read_csv(csv_file)
     return _df
 
+def create_label(intervention_columns):
+    """
+    Return positive or negative function
+    """
+    labels = []
+    for value in intervention_columns:
+        if value == 0:
+            label_val = 'negative'
+            labels.append(label_val)
+        else:
+            label_val = 'positive'
+            labels.append(label_val)
+    return labels
+
 def normalize(_df, columns):
     """
     Function for normalizing the data
@@ -358,8 +372,13 @@ def main():
     data_scaled = data_scaled[columns_final]
     data_scaled = remove_null_values(data_scaled)
 
-    X, y = data_scaled[columns_final], data_scaled[label]
-    decision_tree(X, y, features, label, all_data, nFold=5)
+    deckLabels = data_scaled['deckDeteriorationScore']
+    labels = create_label(deckLabels)
+    print(labels)
+    # TODO: Need to create the positive and negative
+
+    #X, y = data_scaled[columns_final], data_scaled[label]
+    #decision_tree(X, y, features, label, all_data, nFold=5)
 
     #dataScaled, lowestCount, centroids, counts = kmeans_clustering(data_scaled,
     #                                                               list_of_parameters,

@@ -1,6 +1,6 @@
 """
 Description:
-    Xgboost model to predict the future maintenance of bridges
+    Light boost model to predict the future maintenance of bridges
 
 Date:
    October 3rd, 2022
@@ -13,10 +13,11 @@ import numpy as np
 from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
-from xgboost import XGBRegressor
+import lightgbm as lgb
 from sklearn.model_selection import KFold
 
 # Metrics and stats
+from sklearn import metrics
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -25,7 +26,7 @@ from sklearn.metrics import cohen_kappa_score
 # Preprocessing
 from preprocessing import *
 
-def xgb_utility(train_x, trainy,
+def light_boost_utility(train_x, trainy,
                  test_x, testy, cols):
     """
     Description:
@@ -44,10 +45,11 @@ def xgb_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
-    model = XGBRegressor(objective='reg:squarederror')
+    model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
-    model.fit(train_x, trainy)
-    prediction = model.predict(test_x)
+    model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
+    testing_accuracy = model.score(test_x, testy)
+    #prediction = model.predict(test_x)
     #acc = accuracy_score(testy, prediction)
     #_cm = confusion_matrix(testy, prediction)
     #_cr = classification_report(testy, prediction, zero_division=0)
@@ -55,7 +57,7 @@ def xgb_utility(train_x, trainy,
     #kappa = cohen_kappa_score(prediction, testy,
     #                          weights='quadratic')
     #return acc, _cm, _cr, kappa, model
-    return prediction
+    return testing_accuracy
 
 def main():
     X, y, cols = preprocess()
@@ -80,7 +82,7 @@ def main():
         # structure numbers
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
-        predictions = xgb_utility(trainX, trainy, testX, testy, cols)
+        predictions = light_boost_utility(trainX, trainy, testX, testy, cols)
         print(predictions)
 
 main()

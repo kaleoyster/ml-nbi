@@ -23,76 +23,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
 
-def read_csv(csv_file):
-    """
-    Read csv files using pandas
-    """
-    _df = pd.read_csv(csv_file)
-    return _df
-
-def create_label(intervention_columns):
-    """
-    Return positive or negative function
-    """
-    labels = []
-    for value in intervention_columns:
-        if value == 0:
-            label_val = 'negative'
-            labels.append(label_val)
-        else:
-            label_val = 'positive'
-            labels.append(label_val)
-    return labels
-
-def normalize(_df, columns):
-    """
-    Function for normalizing the data
-
-    Args:
-        _df (dataframe)
-        columns (features)
-    """
-    for feature in columns:
-        _df[feature] = _df[feature].astype(int)
-        max_value = _df[feature].max()
-        min_value = _df[feature].min()
-        _df[feature] = (_df[feature] - min_value) / (max_value - min_value)
-    return _df
-
-def remove_null_values(_df):
-    """
-    Description: return a new df with null values removed
-    Args:
-        df (dataframe): the original dataframe to work with
-    Returns:
-        df (dataframe): dataframe
-    """
-    for feature in _df:
-        if feature != 'structureNumber':
-            try:
-                _df = _df[~_df[feature].isin([np.nan])]
-            except:
-                print("Error: ", feature)
-    return _df
-
-def remove_duplicates(_df, column_name='structureNumbers'):
-    """
-    Description: return a new df with duplicates removed
-    Args:
-        df (dataframe): the original dataframe to work with
-        column (string): columname to drop duplicates by
-    Returns:
-        newdf (dataframe)
-    """
-    temp = []
-    for group in _df.groupby(['structureNumber']):
-        structure_number, grouped_df = group
-        grouped_df = grouped_df.drop_duplicates(subset=['structureNumber'],
-                               keep='last'
-                               )
-        temp.append(grouped_df)
-    new_df = pd.concat(temp)
-    return new_df
+# Preprocessing
+from preprocessing import *
 
 def tree_utility(train_x, trainy,
                  test_x, testy, cols,
@@ -121,11 +53,9 @@ def tree_utility(train_x, trainy,
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
     _fi = dict(zip(cols, model.feature_importances_))
-    #rocAuc = roc_auc_score(testy, prediction, multi_class='ovr')
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model, _fi # rocAuc, model
-
+    return acc, _cm, _cr, kappa, model, _fi
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
@@ -400,15 +330,4 @@ def main():
                                                  criteria='entropy',
                                                  max_depth=5)
         print(gcr)
-
-
-    # TODO: Need to create the positive and negative
-
-    #X, y = data_scaled[columns_final], data_scaled[label]
-    #decision_tree(X, y, features, label, all_data, nFold=5)
-
-    #dataScaled, lowestCount, centroids, counts = kmeans_clustering(data_scaled,
-    #                                                               list_of_parameters,
-    #                                                               state=state)
-
 main()

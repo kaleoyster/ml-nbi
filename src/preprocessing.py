@@ -14,7 +14,6 @@ from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
 
-
 def read_csv(csv_file):
     """
     Read csv files using pandas
@@ -88,7 +87,7 @@ def remove_duplicates(_df, column_name='structureNumbers'):
     return new_df
 
 def preprocess():
-    csv_file = '../../data/nebraska_deep.csv'
+    csv_file = '../data/nebraska_deep.csv'
     df = read_csv(csv_file)
 
     # Remove null values:
@@ -192,5 +191,3 @@ def preprocess():
     y = np.array(y)
 
     return X, y, cols
-
-

@@ -221,11 +221,23 @@ def main():
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                           X[foldTestX], y[foldTestX]
 
-        # structure numbers
         # Gini
-        gacc, gcm, gcr, gkappa, gmodel, gfi = tree_utility(trainX, trainy,
+        eacc, ecm, ecr, ekappa, emodel, efi = tree_utility(trainX, trainy,
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=5)
-        print(gcr)
-main()
+
+    # Training
+    trainX, trainY = data_preprocessing()
+
+    # Training and evaluating
+    scores, histories = evaluate_model(trainX, trainY)
+
+    # Learning curves
+    summarize_diagnostics(histories)
+
+    # Summarize estimated performance
+    summarize_performance(scores)
+
+if __name__ == '__main__':
+    main()

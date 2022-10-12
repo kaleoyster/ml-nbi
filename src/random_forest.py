@@ -50,6 +50,7 @@ def random_forest_utility(train_x, trainy,
     model = RandomForestClassifier(max_depth=max_depth, random_state=0)
     model.fit(train_x, trainy)
     prediction = model.predict(test_x)
+    #prediction_prob = model.predict_prob(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)

@@ -11,6 +11,7 @@ import csv
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+from collections import Counter
 from tqdm import tqdm
 import pydotplus
 
@@ -86,8 +87,7 @@ def remove_duplicates(_df, column_name='structureNumbers'):
     new_df = pd.concat(temp)
     return new_df
 
-def preprocess():
-    csv_file = '../data/nebraska_deep.csv'
+def preprocess(csv_file = '../data/nebraska_deep.csv'):
     df = read_csv(csv_file)
 
     # Remove null values:
@@ -113,7 +113,7 @@ def preprocess():
     df.precipitation.fillna(value=-1, inplace=True)
     df.freezethaw.fillna(value=-1, inplace=True)
 
-    df.toll.fillna(value=-1, inplace=True)
+    #df.toll.fillna(value=-1, inplace=True)
     df.designatedInspectionFrequency.fillna(value=-1, inplace=True)
     df.deckStructureType.fillna(value=-1, inplace=True)
     df.typeOfDesign.fillna(value=-1, inplace=True)
@@ -172,7 +172,6 @@ def preprocess():
                     "designatedInspectionFrequency",
                     "deckStructureType",
                     "typeOfDesign",
-
                     "deckDeteriorationScore",
                     "subDeteriorationScore",
                     "supDeteriorationScore"

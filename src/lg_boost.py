@@ -22,6 +22,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
 
 # Preprocessing
 from preprocessing import *
@@ -48,16 +50,18 @@ def light_boost_utility(train_x, trainy,
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
-    testing_accuracy = model.score(test_x, testy)
-    #prediction = model.predict(test_x)
-    #acc = accuracy_score(testy, prediction)
-    #_cm = confusion_matrix(testy, prediction)
-    #_cr = classification_report(testy, prediction, zero_division=0)
-    #_fi = dict(zip(cols, model.feature_importances_))
-    #kappa = cohen_kappa_score(prediction, testy,
-    #                          weights='quadratic')
-    #return acc, _cm, _cr, kappa, model
-    return testing_accuracy
+    #testing_accuracy = model.score(test_x, testy)
+    prediction = model.predict(test_x)
+    _acc = accuracy_score(testy, prediction)
+    _cm = confusion_matrix(testy, prediction)
+    _cr = classification_report(testy, prediction, zero_division=0)
+    _fi = dict(zip(cols, model.feature_importances_))
+    kappa = cohen_kappa_score(prediction, testy,
+                              weights='quadratic')
+
+    #fpr, tpr, threshold = metrics.roc_curve(testy, prediction, pos_label=2)
+    #_auc = metrics.auc(fpr, tpr)
+    return _acc, _cm, _cr, kappa
 
 def main():
     X, y, cols = preprocess()
@@ -82,7 +86,6 @@ def main():
         # structure numbers
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
-        predictions = light_boost_utility(trainX, trainy, testX, testy, cols)
-        print(predictions)
+        acc, cm, cr, kappa = light_boost_utility(trainX, trainy, testX, testy, cols)
 
 main()

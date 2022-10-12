@@ -24,6 +24,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
 
 # Preprocessing
 from preprocessing import *
@@ -49,14 +51,18 @@ def logistic_regression_utility(train_x, trainy,
     """
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
+    prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
+    #fpr, tpr, threshold = roc_curve(prediction, prediction_prob, pos_label=2)
+    #_auc = auc(fpr, tpr)
+    #_auc = metrics.roc_auc_score(testy, prediction_prob)
     #_fi = dict(zip(cols, model.feature_importances_))
-    kappa = cohen_kappa_score(prediction, testy,
+    _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model
+    return acc, _cm, _cr, _kappa, model
 
 def main():
     X, y, cols = preprocess()

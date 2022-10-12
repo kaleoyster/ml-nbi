@@ -21,9 +21,32 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
 
 # Preprocessing
 from preprocessing import *
+
+def convert_prediction_to_binary(predictions, threshold=0.5):
+    """
+    Description:
+
+    Args:
+        predictions:
+        threshold:
+    Returns:
+        binary_conversion
+    """
+    binary_conversion = []
+    for value in predictions:
+        if value <= threshold:
+            val_binary = 0
+            binary_conversion.append(val_binary)
+        else:
+            val_binary = 1
+            binary_conversion.append(val_binary)
+    return binary_conversion
 
 def xgb_utility(train_x, trainy,
                  test_x, testy, cols):
@@ -48,19 +71,25 @@ def xgb_utility(train_x, trainy,
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     model.fit(train_x, trainy)
     prediction = model.predict(test_x)
-    #acc = accuracy_score(testy, prediction)
-    #_cm = confusion_matrix(testy, prediction)
-    #_cr = classification_report(testy, prediction, zero_division=0)
+    b_prediction = convert_prediction_to_binary(prediction)
+
+    #_mse = mean_squared_error(prediction, testy)
+    _acc = accuracy_score(testy, b_prediction)
+    _cm = confusion_matrix(testy, b_prediction)
+    _cr = classification_report(testy, b_prediction, zero_division=0)
     #_fi = dict(zip(cols, model.feature_importances_))
-    #kappa = cohen_kappa_score(prediction, testy,
-    #                          weights='quadratic')
-    #return acc, _cm, _cr, kappa, model
-    return prediction
+    _kappa = cohen_kappa_score(b_prediction, testy,
+                              weights='quadratic')
+    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
+    _auc = auc(fpr, tpr)
+    return _acc, _cm, _cr, _kappa
 
 def main():
     X, y, cols = preprocess()
 
     # Convert y into 0, 1
+    # If positive = 1
+    # If negative = 0
     new_y = []
     for value in y:
         if value == 'positive':
@@ -77,10 +106,8 @@ def main():
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                            X[foldTestX], y[foldTestX]
 
+        # Check the distribution
         # structure numbers
-        #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
-        #                                          testX, testy, cols)
-        predictions = xgb_utility(trainX, trainy, testX, testy, cols)
-        print(predictions)
+        acc, cm, cr, kappa = xgb_utility(trainX, trainy, testX, testy, cols)
 
 main()

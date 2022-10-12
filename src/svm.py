@@ -51,9 +51,10 @@ def support_vector_utility(train_x, trainy,
         kappa: Kappa Value
         model: Support vector machine Model
     """
-    model = make_pipeline(StandardScaler(), SVC(gamma='auto'))
+    model = make_pipeline(StandardScaler(), SVC(gamma='auto', probability=True))
     model.fit(train_x, trainy)
     prediction = model.predict(test_x)
+    prediction_prob = model.predict_proba(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)

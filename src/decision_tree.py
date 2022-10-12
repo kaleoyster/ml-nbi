@@ -22,6 +22,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
 
 # Preprocessing
 from preprocessing import *
@@ -48,14 +50,18 @@ def tree_utility(train_x, trainy,
     """
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     model.fit(train_x, trainy)
+    prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
     _fi = dict(zip(cols, model.feature_importances_))
-    kappa = cohen_kappa_score(prediction, testy,
+    _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model, _fi
+    #fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
+    #_auc = metrics.auc(fpr, tpr)
+
+    return acc, _cm, _cr, _kappa, model, _fi
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
@@ -213,6 +219,7 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     return kappaVals, accVals, featImps, models
 
 def main():
+
     X, y, cols = preprocess()
     kfold = KFold(5, shuffle=True, random_state=1)
 
@@ -221,11 +228,10 @@ def main():
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                           X[foldTestX], y[foldTestX]
 
-        # structure numbers
-        # Gini
-        gacc, gcm, gcr, gkappa, gmodel, gfi = tree_utility(trainX, trainy,
+        # Entropy
+        acc, cm, cr, kappa, model, fi = tree_utility(trainX, trainy,
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=5)
-        print(gcr)
+    print(cr)
 main()

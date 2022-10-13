@@ -105,9 +105,7 @@ def main():
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                            X[foldTestX], y[foldTestX]
-
         # Check the distribution
         # structure numbers
         acc, cm, cr, kappa = xgb_utility(trainX, trainy, testX, testy, cols)
-
 main()

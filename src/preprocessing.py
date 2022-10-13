@@ -176,7 +176,8 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
                     "subDeteriorationScore",
                     "supDeteriorationScore"
                 ]
-
+    """
+    """
     cols = columns_normalize
     data_scaled = normalize(df, columns_normalize)
     X = data_scaled[columns_final]

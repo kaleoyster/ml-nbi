@@ -108,4 +108,5 @@ def main():
         # Check the distribution
         # structure numbers
         acc, cm, cr, kappa = xgb_utility(trainX, trainy, testX, testy, cols)
+        print(acc)
 main()

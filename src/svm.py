@@ -28,6 +28,10 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+
 
 # Preprocessing
 from preprocessing import *
@@ -61,7 +65,10 @@ def support_vector_utility(train_x, trainy,
     #_fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model
+#    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
+#    _auc = auc(fpr, tpr)
+
+    return acc, _cm, _cr, kappa, model 
 
 def main():
     X, y, cols = preprocess()
@@ -75,6 +82,10 @@ def main():
         # structure numbers
         gacc, gcm, gcr, gkappa, gmodel = support_vector_utility(trainX, trainy,
                                                  testX, testy, cols)
-        print(gcr)
+    print("Classification Report")
+    print("\n")
+    print(gcr)
+    print("Accuracy: ", gacc)
+    print("Kappa: ", gkappa)
 
 main()

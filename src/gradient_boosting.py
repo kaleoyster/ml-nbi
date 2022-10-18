@@ -73,6 +73,10 @@ def main():
         # structure numbers
         gacc, gcm, gcr, gkappa, gmodel = gradient_boosting_utility(trainX, trainy,
                                                  testX, testy, cols, max_depth=7)
-        print(gcr)
 
+    print("Classification Report")
+    print("\n")
+    print(gcr)
+    print("Accuracy: ", gacc)
+    print("Kappa: ", gkappa)
 main()

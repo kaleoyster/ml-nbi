@@ -87,5 +87,10 @@ def main():
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
         acc, cm, cr, kappa = light_boost_utility(trainX, trainy, testX, testy, cols)
+    print("Classification Report")
+    print("\n")
+    print(cr)
+    print("Accuracy: ",acc)
+    print("Kappa: ", kappa)
 
 main()

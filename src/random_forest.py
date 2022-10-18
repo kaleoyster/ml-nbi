@@ -71,6 +71,9 @@ def main():
         # structure numbers
         gacc, gcm, gcr, gkappa, gmodel = random_forest_utility(trainX, trainy,
                                                  testX, testy, cols, max_depth=7)
-        print(gcr)
-
+    print(gcr)
+    print("Accuracy")
+    print(gacc)
+    print("Kappa")
+    print(gkappa)
 main()

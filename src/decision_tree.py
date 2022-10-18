@@ -233,5 +233,10 @@ def main():
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=5)
+    print("Classification Report")
+    print("\n")
     print(cr)
+    print("Accuracy: ", acc)
+    print("Kappa: ",kappa)
+
 main()

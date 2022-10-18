@@ -76,6 +76,11 @@ def main():
         # structure numbers
         gacc, gcm, gcr, gkappa, gmodel = logistic_regression_utility(trainX, trainy,
                                                  testX, testy, cols)
-        print(gcr)
+    print("Classification Report")
+    print("\n")
+    print(gcr)
+    print("Accuracy: ", gacc)
+    print("Kappa: ", gkappa)
+
 
 main()

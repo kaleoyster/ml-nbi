@@ -82,7 +82,7 @@ def xgb_utility(train_x, trainy,
                               weights='quadratic')
     fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
     _auc = auc(fpr, tpr)
-    return _acc, _cm, _cr, _kappa
+    return _acc, _cm, _cr, _kappa, _auc
 
 def main():
     X, y, cols = preprocess()
@@ -107,6 +107,12 @@ def main():
                                            X[foldTestX], y[foldTestX]
         # Check the distribution
         # structure numbers
-        acc, cm, cr, kappa = xgb_utility(trainX, trainy, testX, testy, cols)
-        print(acc)
+        acc, cm, cr, kappa, auc = xgb_utility(trainX, trainy, testX, testy, cols)
+    print("Classification Report")
+    print("\n")
+    print(cr)
+    print("Accuracy: ", acc)
+    print("Kappa: ", kappa)
+    print("AUC: ", auc)
+
 main()

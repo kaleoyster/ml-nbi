@@ -63,6 +63,7 @@ def main():
     X, y, cols = preprocess()
     kfold = KFold(5, shuffle=True, random_state=1)
 
+    performance = defaultdict(list)
     # X is the dataset
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
@@ -70,10 +71,14 @@ def main():
 
         # structure numbers
         gacc, gcm, gcr, gkappa, gmodel = random_forest_utility(trainX, trainy,
-                                                 testX, testy, cols, max_depth=7)
-    print(gcr)
-    print("Accuracy")
-    print(gacc)
-    print("Kappa")
-    print(gkappa)
+                                                 testX, testy, cols, max_depth=10)
+        performance['accuracy'].append(gacc)
+        performance['kappa'].append(gkappa)
+        performance['confusion_matrix'].append(gcm)
+        performance['classification_report'].append(gcr)
+
+    return performance
+
+if __name__ =='__main__':
+    main()
 main()

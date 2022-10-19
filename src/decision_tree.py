@@ -224,6 +224,7 @@ def main():
     kfold = KFold(5, shuffle=True, random_state=1)
 
     # X is the dataset
+    performance = defaultdict(list)
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                           X[foldTestX], y[foldTestX]
@@ -233,10 +234,13 @@ def main():
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=5)
-    print("Classification Report")
-    print("\n")
-    print(cr)
-    print("Accuracy: ", acc)
-    print("Kappa: ",kappa)
+        performance['accuracy'].append(acc)
+        performance['kappa'].append(kappa)
+        performance['confusion_matrix'].append(cm)
+        performance['classification_report'].append(cr)
+        performance['feature_importance'].append(fi)
 
-main()
+    return performance
+
+if __name__ == '__main__':
+    main()

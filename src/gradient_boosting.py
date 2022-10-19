@@ -66,6 +66,7 @@ def main():
     kfold = KFold(5, shuffle=True, random_state=1)
 
     # X is the dataset
+    performance = defaultdict(list)
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                           X[foldTestX], y[foldTestX]
@@ -74,9 +75,12 @@ def main():
         gacc, gcm, gcr, gkappa, gmodel = gradient_boosting_utility(trainX, trainy,
                                                  testX, testy, cols, max_depth=7)
 
-    print("Classification Report")
-    print("\n")
-    print(gcr)
-    print("Accuracy: ", gacc)
-    print("Kappa: ", gkappa)
-main()
+        performance['accuracy'].append(gacc)
+        performance['kappa'].append(gkappa)
+        performance['confusion_matrix'].append(gcm)
+        performance['classification_report'].append(gcr)
+
+    return performance
+
+if __name__ =='__main__':
+    main()

@@ -79,6 +79,7 @@ def main():
     kfold = KFold(5, shuffle=True, random_state=1)
 
     #X is the dataset
+    performance = defaultdict(list)
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                            X[foldTestX], y[foldTestX]
@@ -87,10 +88,13 @@ def main():
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
         acc, cm, cr, kappa = light_boost_utility(trainX, trainy, testX, testy, cols)
-    print("Classification Report")
-    print("\n")
-    print(cr)
-    print("Accuracy: ",acc)
-    print("Kappa: ", kappa)
 
-main()
+        performance['accuracy'].append(acc)
+        performance['kappa'].append(kappa)
+        performance['confusion_matrix'].append(cm)
+        performance['classification_report'].append(cr)
+
+    return performance
+
+if __name__ =='__main__':
+    main()

@@ -32,7 +32,6 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 
-
 # Preprocessing
 from preprocessing import *
 
@@ -68,13 +67,14 @@ def support_vector_utility(train_x, trainy,
 #    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
 #    _auc = auc(fpr, tpr)
 
-    return acc, _cm, _cr, kappa, model 
+    return acc, _cm, _cr, kappa, model
 
 def main():
     X, y, cols = preprocess()
     kfold = KFold(5, shuffle=True, random_state=1)
 
     # X is the dataset
+    performance = defaultdict(list)
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                           X[foldTestX], y[foldTestX]
@@ -82,10 +82,12 @@ def main():
         # structure numbers
         gacc, gcm, gcr, gkappa, gmodel = support_vector_utility(trainX, trainy,
                                                  testX, testy, cols)
-    print("Classification Report")
-    print("\n")
-    print(gcr)
-    print("Accuracy: ", gacc)
-    print("Kappa: ", gkappa)
+        performance['accuracy'].append(gacc)
+        performance['kappa'].append(gkappa)
+        performance['confusion_matrix'].append(gcr)
+        performance['classification_report'].append(gcr)
 
-main()
+    return performance
+
+if __name__ == '__main__':
+    main()

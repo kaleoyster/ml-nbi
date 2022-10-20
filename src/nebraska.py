@@ -8,6 +8,7 @@ def main():
     # Prepare dataset
     trainX, trainY = data_preprocessing()
 
+    #TODO: Include IRIS dataset
     # Training and evaluating
     scores, histories = evaluate_model(trainX, trainY)
 

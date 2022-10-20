@@ -18,7 +18,10 @@ from maps import mapDict
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from decimal import Decimal
+
 from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTEN
+from imblearn.over_sampling import SMOTENC
 import pydotplus
 
 def create_labels(_df, label):
@@ -464,7 +467,6 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     data_scaled['cluster'] = s_labels
 
     # Deck Number Intervention -> 0, 1.
-
     # TODO: 
         # 1. One hot encoding
         # 2. Creating consistent label using deck, superstructure and substructure
@@ -493,17 +495,17 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     data_scaled = data_scaled[~data_scaled['label'].isin(list_of_clusters)]
 
     X, y = data_scaled[columns_final], data_scaled['label']
-
     neg = data_scaled[data_scaled['label'] == 'negative']
     pos = data_scaled[data_scaled['label'] == 'positive']
 
-    oversample = SMOTE()
-    X, y = oversample.fit_resample(X, y)
+    #sampling = SMOTE()
+    sampling = SMOTEN(random_state=0)
+    #sampling = SMOTENC(random_state=42,
+    #                   categorical_features=categorical_col)
+    X, y = sampling.fit_resample(X, y)
 
     # Convert them into arrays
     X = np.array(X)
     y = np.array(y)
 
     return X, y, cols
-
-X, y, cols = preprocess()

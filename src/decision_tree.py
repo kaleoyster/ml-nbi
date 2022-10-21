@@ -240,6 +240,13 @@ def main():
         performance['classification_report'].append(cr)
         performance['feature_importance'].append(fi)
 
+
+    print('Performance metrics:')
+    print(performance['accuracy'])
+    print(np.mean(performance['accuracy']))
+    print(performance['kappa'])
+    print(np.mean(performance['kappa']))
+
     return performance
 
 if __name__ == '__main__':

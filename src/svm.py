@@ -87,6 +87,12 @@ def main():
         performance['confusion_matrix'].append(gcr)
         performance['classification_report'].append(gcr)
 
+    print('Performance metrics:')
+    print(performance['accuracy'])
+    print(np.mean(performance['accuracy']))
+    print(performance['kappa'])
+    print(np.mean(performance['kappa']))
+
     return performance
 
 if __name__ == '__main__':

@@ -22,6 +22,7 @@ from decimal import Decimal
 from imblearn.over_sampling import SMOTE
 from imblearn.over_sampling import SMOTEN
 from imblearn.over_sampling import SMOTENC
+from imblearn.under_sampling import RandomUnderSampler
 import pydotplus
 
 def create_labels(_df, label):
@@ -36,7 +37,7 @@ def create_labels(_df, label):
         df (dataframe): a dataframe with additional
         attributes
     """
-     #TODO: Create a new definition for positive class and negative class
+    #TODO: Create a new definition for positive class and negative class
 
     print('Using this function')
     #label = 'All intervention'
@@ -498,10 +499,47 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     neg = data_scaled[data_scaled['label'] == 'negative']
     pos = data_scaled[data_scaled['label'] == 'positive']
 
-    #sampling = SMOTE()
-    sampling = SMOTEN(random_state=0)
+    # List of categorical columns
+    categorical_col = [
+                            16,
+                            17,
+                            18,
+                            19,
+                            20,
+                            21,
+                            22,
+                            23,
+                            24,
+                            25,
+                            26,
+                            27,
+                            28,
+                            29,
+                            30,
+                            31,
+                            32,
+                            33,
+                            34,
+                            35,
+                            36,
+                            37,
+                            38,
+                            39,
+                            40,
+                            41,
+                            42,
+                            43,
+                            44,
+                            45,
+                            46,
+                            47,
+                            48
+        ]
+    sampling = SMOTE()
+    #sampling = SMOTEN(random_state=0)
     #sampling = SMOTENC(random_state=42,
-    #                   categorical_features=categorical_col)
+    #                  categorical_features=categorical_col)
+    #sampling = RandomUnderSampler(sampling_strategy='auto')
     X, y = sampling.fit_resample(X, y)
 
     # Convert them into arrays

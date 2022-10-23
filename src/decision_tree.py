@@ -233,7 +233,7 @@ def main():
         acc, cm, cr, kappa, model, fi = tree_utility(trainX, trainy,
                                                  testX, testy, cols,
                                                  criteria='entropy',
-                                                 max_depth=5)
+                                                 max_depth=30)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)

@@ -93,6 +93,13 @@ def main():
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
+#
+    print('Performance metrics:')
+    print(performance['accuracy'])
+    print(np.mean(performance['accuracy']))
+    print(performance['kappa'])
+    print(np.mean(performance['kappa']))
+
 
     return performance
 

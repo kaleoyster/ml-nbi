@@ -12,17 +12,17 @@ from preprocessing import *
 
 #data_folder = 'input/'
 #data_file = datafolder + "iris.csv"
-data_file = 'iris.csv'
-print(data_file)
+#data_file = 'iris.csv'
+#print(data_file)
 
-df = pd.read_csv(data_file)
-df.head()
+#df = pd.read_csv(data_file)
+3df.head()
 
-X = df.iloc[:, 0:4].values
-y = df.iloc[:, 4].values
+#X = df.iloc[:, 0:4].values
+#y = df.iloc[:, 4].values
 
-print(X[0:5])
-print(y[0:5])
+#print(X[0:5])
+#print(y[0:5])
 
 #print(X.shape)
 #print(y.shape)
@@ -43,6 +43,7 @@ y1 = encoder.fit_transform(bridge_y)
 Y = pd.get_dummies(y1).values
 #print(Y[0:5])
 
+# Simple sequential model
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(10, activation='relu'),
     tf.keras.layers.Dense(10, activation='relu'),

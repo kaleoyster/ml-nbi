@@ -253,7 +253,7 @@ def data_preprocessing():
     Description:
         Pipeline for create images of
     """
-    df = pd.read_csv("../data/nebraska_deep_learning.csv",
+    df = pd.read_csv("../data/nebraska_deep.csv",
                      index_col=None,
                      low_memory=False)
 

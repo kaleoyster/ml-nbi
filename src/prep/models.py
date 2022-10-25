@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
 import matplotlib.pyplot as pyplot
 import plotly.express as px
 
+import tensorflow as tf
+from tensorflow.keras import layers
+from tensorflow.keras import datasets, layers, models
+from tensorflow.keras.utils import to_categorical
 import tensorflow.keras.models as models
 import tensorflow.keras.layers as layer
 import tensorflow.keras.datasets as dataset
@@ -74,6 +78,14 @@ def leNet(in_shape):
     plot_model(model, show_shapes=True, to_file='LeNetModel.png')
     return model
 
+def iris_model(in_shape):
+    """
+    Description: A simple implementation of mobilenet
+    Args: in_shape
+    Returns: Returns model
+    """
+    return model
+
 def mobile_net(in_shape):
     """
     Description: A simple implementation of mobilenet
@@ -129,15 +141,28 @@ def define_model():
     Args:
     Returns:
     """
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(10, 10, 1)))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Flatten())
-    model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
-    model.add(Dense(2, activation='softmax'))
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Dense(10, activation='relu'),
+            tf.keras.layers.Dense(10, activation='relu'),
+            tf.keras.layers.Dense(2, activation='softmax'),
+        ]
+    )
+
+    model.compile(optimizer='rmsprop',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+
+    #model = Sequential()
+    #model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(8, 12, 1)))
+    #model.add(MaxPooling2D((2, 2)))
+    #model.add(Flatten())
+    #model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
+    #model.add(Dense(2, activation='softmax'))
     # compile model
-    opt = SGD(lr=0.1, momentum=0.9)
-    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    #opt = SGD(lr=0.1, momentum=0.9)
+    #model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     model.summary()
     return model
 

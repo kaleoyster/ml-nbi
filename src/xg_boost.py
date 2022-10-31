@@ -15,6 +15,7 @@ from tqdm import tqdm
 import pydotplus
 from xgboost import XGBRegressor
 from sklearn.model_selection import KFold
+from shap import TreeExplainer
 
 # Metrics and stats
 from sklearn.metrics import classification_report
@@ -70,6 +71,12 @@ def xgb_utility(train_x, trainy,
     model = XGBRegressor(objective='reg:squarederror')
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     model.fit(train_x, trainy)
+    xgb_exp = TreeExplainer(model)
+    xgb_sv = np.array(xgb_exp.shap_values(test_x))
+    xgb_ev = np.array(xgb_exp.expected_value)
+    print("Shpae of the XGB Shap values:", xgb_sv.shape)
+
+    #Predictions
     prediction = model.predict(test_x)
     b_prediction = convert_prediction_to_binary(prediction)
 

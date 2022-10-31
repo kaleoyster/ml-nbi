@@ -14,6 +14,8 @@ from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
 import lightgbm as lgb
+import shap
+from shap import TreeExplainer
 from sklearn.model_selection import KFold
 
 # Metrics and stats
@@ -50,7 +52,15 @@ def light_boost_utility(train_x, trainy,
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
-    #testing_accuracy = model.score(test_x, testy)
+
+    lg_exp = TreeExplainer(model)
+    lg_sv = np.array(lg_exp.shap_values(train_x))
+    lg_ev = np.array(lg_exp.expected_value)
+
+    # Cat boost:
+    print("Shape of the RF values:", lg_sv[0])
+
+    #testing_accuracy = modelX_test.score(test_x, testy)
     prediction = model.predict(test_x)
     _acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)

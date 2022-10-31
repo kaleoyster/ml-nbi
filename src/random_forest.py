@@ -18,6 +18,7 @@ from tqdm import tqdm
 import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
+from shap import TreeExplainer
 
 # Metrics and stats
 from sklearn.metrics import classification_report
@@ -49,6 +50,13 @@ def random_forest_utility(train_x, trainy,
     """
     model = RandomForestClassifier(max_depth=max_depth, random_state=0)
     model.fit(train_x, trainy)
+    # Tree explainer
+    rf_exp = TreeExplainer(model)
+    rf_sv = np.array(rf_exp.shap_values(test_x))
+    rf_ev = np.array(rf_exp.expected_value)
+    print(rf_sv.shape)
+
+    # Predictions
     prediction = model.predict(test_x)
     #prediction_prob = model.predict_prob(test_x)
     acc = accuracy_score(testy, prediction)

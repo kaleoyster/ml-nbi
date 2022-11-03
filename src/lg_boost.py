@@ -16,6 +16,8 @@ import pydotplus
 import lightgbm as lgb
 import shap
 from shap import TreeExplainer
+from shap import summary_plot
+
 from sklearn.model_selection import KFold
 
 # Metrics and stats
@@ -54,11 +56,21 @@ def light_boost_utility(train_x, trainy,
     model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
 
     lg_exp = TreeExplainer(model)
+    #lg_exp = shap.Explainer(model)
+    #lg_sv = explainer(train_x)
+
     lg_sv = np.array(lg_exp.shap_values(train_x))
     lg_ev = np.array(lg_exp.expected_value)
 
+    lg_sv = lg_exp.shap_values(train_x)
+    lg_ev = lg_exp.expected_value
+
     # Cat boost:
     print("Shape of the RF values:", lg_sv[0])
+    summary_plot(lg_sv[0], train_x)
+    #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
+
+    #shap.plots.waterfall(lg_sv[0])
 
     #testing_accuracy = modelX_test.score(test_x, testy)
     prediction = model.predict(test_x)

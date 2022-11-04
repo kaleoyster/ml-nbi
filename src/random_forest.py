@@ -60,6 +60,7 @@ def random_forest_utility(train_x, trainy,
 
     # Predictions
     prediction = model.predict(test_x)
+
     #prediction_prob = model.predict_prob(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)

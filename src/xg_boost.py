@@ -15,7 +15,9 @@ from tqdm import tqdm
 import pydotplus
 from xgboost import XGBRegressor
 from sklearn.model_selection import KFold
+import shap
 from shap import TreeExplainer
+from shap import summary_plot
 
 # Metrics and stats
 from sklearn.metrics import classification_report
@@ -72,9 +74,18 @@ def xgb_utility(train_x, trainy,
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     model.fit(train_x, trainy)
     xgb_exp = TreeExplainer(model)
-    xgb_sv = np.array(xgb_exp.shap_values(test_x))
+
+    xgb_sv = np.array(xgb_exp.shap_values(train_x))
     xgb_ev = np.array(xgb_exp.expected_value)
-    print("Shpae of the XGB Shap values:", xgb_sv.shape)
+
+    xgb_sv = xgb_exp.shap_values(train_x)
+    xgb_ev = xgb_exp.expected_value
+
+    # Cat boost:
+    print("Shape of the RF values:", xgb_sv[0])
+    summary_plot(xgb_sv, train_x)
+
+    print("Shape of the XGB Shap values:", xgb_sv.shape)
 
     #Predictions
     prediction = model.predict(test_x)
@@ -84,6 +95,7 @@ def xgb_utility(train_x, trainy,
     _acc = accuracy_score(testy, b_prediction)
     _cm = confusion_matrix(testy, b_prediction)
     _cr = classification_report(testy, b_prediction, zero_division=0)
+
     #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(b_prediction, testy,
                               weights='quadratic')
@@ -126,7 +138,6 @@ def main():
     print(np.mean(performance['accuracy']))
     print(performance['kappa'])
     print(np.mean(performance['kappa']))
-
 
     return performance
 

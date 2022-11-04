@@ -17,7 +17,6 @@ import lightgbm as lgb
 import shap
 from shap import TreeExplainer
 from shap import summary_plot
-
 from sklearn.model_selection import KFold
 
 # Metrics and stats
@@ -67,7 +66,8 @@ def light_boost_utility(train_x, trainy,
 
     # Cat boost:
     print("Shape of the RF values:", lg_sv[0])
-    summary_plot(lg_sv[0], train_x)
+    print("Shape of the Light boost Shap Values")
+    summary_plot(lg_sv, train_x)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
     #shap.plots.waterfall(lg_sv[0])

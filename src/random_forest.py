@@ -18,9 +18,15 @@ from tqdm import tqdm
 import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
+
+# From Shap
 import shap
 from shap import TreeExplainer
 from shap import summary_plot
+
+# Import Lime:
+import lime
+from lime import lime_tabular
 
 # Metrics and stats
 from sklearn.metrics import classification_report
@@ -52,6 +58,23 @@ def random_forest_utility(train_x, trainy,
     """
     model = RandomForestClassifier(max_depth=max_depth, random_state=0)
     model.fit(train_x, trainy)
+
+    # Lime explainer
+    rf_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(train_x),
+        feature_names = cols,
+        class_names=['Repair', 'No Repair'],
+        mode='classification'
+    )
+
+    # Explaining the instances using LIME
+    instance_exp = rf_exp_lime.explain_instance(
+        data_row = test_x.iloc[4],
+        predict_fn = model.predict_proba
+    )
+
+    # rf_exp_lime.show_in_notebook(show_table=True)
+
     # Tree explainer -> The shap values are presented in the test_x
     rf_exp = TreeExplainer(model)
     rf_sv = np.array(rf_exp.shap_values(test_x))

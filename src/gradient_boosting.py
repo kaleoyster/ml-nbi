@@ -19,6 +19,11 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import GradientBoostingClassifier
 
+# shap
+import shap
+from shap import TreeExplainer
+from shap import summary_plot
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -52,7 +57,20 @@ def gradient_boosting_utility(train_x, trainy,
                                        max_depth=max_depth,
                                        random_state=0)
     model.fit(train_x, trainy)
+
+    g_exp = TreeExplainer(model)
+    g_sv = np.array(g_exp.shap_values(train_x))
+    g_ev = np.array(g_exp.expected_value)
+
+    g_sv = g_exp.shap_values(train_x)
+    g_ev = g_exp.expected_value
+
+    summary_plot(g_sv, train_x)
+
     prediction = model.predict(test_x)
+
+
+
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)

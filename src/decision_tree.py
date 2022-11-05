@@ -17,6 +17,11 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.tree import DecisionTreeClassifier
 
+# Shap
+import shap
+from shap import TreeExplainer
+from shap import summary_plot
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -50,6 +55,19 @@ def tree_utility(train_x, trainy,
     """
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     model.fit(train_x, trainy)
+
+    dt_exp = TreeExplainer(model)
+    dt_sv = np.array(dt_exp.shap_values(train_x))
+    dt_ev = np.array(dt_exp.expected_value)
+
+    dt_sv =  dt_exp.shap_values(train_x)
+    dt_ev =  dt_exp.expected_value
+
+
+    print("Shape of the RF values:", dt_sv[0])
+    print("Shape of the Light boost Shap Values")
+    summary_plot(dt_sv, train_x)
+
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)

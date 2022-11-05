@@ -23,6 +23,11 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
+# SHAP
+import shap
+from shap import KernelExplainer
+from shap import summary_plot
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -57,7 +62,18 @@ def support_vector_utility(train_x, trainy,
     model = make_pipeline(StandardScaler(), SVC(gamma='auto', probability=True))
     model.fit(train_x, trainy)
     prediction = model.predict(test_x)
+
     prediction_prob = model.predict_proba(test_x)
+
+    svm_exp = KernelExplainer(model=model.predict_proba, data=train_x)
+    svm_sv = np.array(svm_exp.shap_values(train_x))
+    svm_ev = np.array(svm_exp.expected_value)
+
+    svm_sv = svm_exp.shap_values(train_x)
+    svm_ev = svm_exp.expected_value
+
+    summary_plot(svm_sv, train_x)
+
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)

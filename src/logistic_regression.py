@@ -56,21 +56,34 @@ def logistic_regression_utility(train_x, trainy,
     """
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
-    prediction_prob = model.predict_proba(test_x)
+
+    explainer = shap.Explainer(model, train_x)
+    #shap_values = explainer(np.array(test_x, dtype=int))
+    shap_values = explainer(test_x)
+    int_shap = np.array(shap_values, dtype=int)
+    print(int_shap)
+    #summary_plot(int_shap)
+    #shap.plots.beeswarm(shap_values)
+
+    #shap.plots.beeswarm(shap_values)#, X_test_array, feature_names=vectorizer.get_feature_names())
+    #prediction_prob = model.predict_proba(test_x)
 
     # Shap
     # TODO: Don't know how does this work
-    testing_data = shap.sample(train_x, 1)
-    log_exp = KernelExplainer(model=model.predict_proba, data=testing_data)
+    #testing_data = shap.sample(train_x, 1)
+    #log_exp = shap.Explainer(model, train_x)
+    #log_exp = KernelExplainer(model=model.predict_proba, data=testing_data)
 
-    log_sv = np.array(log_exp.shap_values(train_x))
-    log_ev = np.array(log_exp.expected_value)
+    #log_sv = np.array(log_exp.shap_values(train_x))
+    #log_ev = np.array(log_exp.expected_value)
 
-    log_sv = log_exp.shap_values(train_x)
-    log_ev = log_exp.expected_value
+    #log_sv = log_exp.shap_values(train_x)
+    #log_ev = log_exp.expected_value
 
     # Cat boost:
-    print("Shape of the RF values:", log_sv[0])
+    #log_sv = log_exp(test_x)
+    #print("Shape of the RF values:", log_sv[0])
+    #shap.plots.beeswarm(log_sv)#, X_test_array, feature_names=vectorizer.get_feature_names())
     #print("Shape of the Light boost Shap Values")
     #summary_plot(log_sv, train_x)
 

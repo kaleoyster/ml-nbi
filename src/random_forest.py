@@ -59,19 +59,19 @@ def random_forest_utility(train_x, trainy,
     model = RandomForestClassifier(max_depth=max_depth, random_state=0)
     model.fit(train_x, trainy)
 
-    # Lime explainer
-    rf_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(train_x),
-        feature_names = cols,
-        class_names=['Repair', 'No Repair'],
-        mode='classification'
-    )
+    ## Lime explainer
+    #rf_exp_lime = lime_tabular.LimeTabularExplainer(
+    #    training_data = np.array(train_x),
+    #    feature_names = cols,
+    #    class_names=['Repair', 'No Repair'],
+    #    mode='classification'
+    #)
 
-    # Explaining the instances using LIME
-    instance_exp = rf_exp_lime.explain_instance(
-        data_row = test_x.iloc[4],
-        predict_fn = model.predict_proba
-    )
+    ## Explaining the instances using LIME
+    #instance_exp = rf_exp_lime.explain_instance(
+    #    data_row = test_x.iloc[4],
+    #    predict_fn = model.predict_proba
+    #)
 
     # rf_exp_lime.show_in_notebook(show_table=True)
 
@@ -79,7 +79,7 @@ def random_forest_utility(train_x, trainy,
     rf_exp = TreeExplainer(model)
     rf_sv = np.array(rf_exp.shap_values(test_x))
     rf_ev = np.array(rf_exp.expected_value)
-    summary_plot(rf_sv[0], test_x)
+    #summary_plot(rf_sv[0], test_x)
 
     # Predictions
     prediction = model.predict(test_x)

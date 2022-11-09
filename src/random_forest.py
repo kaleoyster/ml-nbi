@@ -5,7 +5,6 @@ Description:
 Date:
    October 3rd, 2022
 """
-
 import sys
 import sys
 import csv
@@ -56,22 +55,31 @@ def random_forest_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
-    model = RandomForestClassifier(max_depth=max_depth, random_state=0)
-    model.fit(train_x, trainy)
+    # new dataframes
+    X_train = pd.DataFrame(train_x)
+    #y_train = pd.DataFrame(trainy, columns=['class'])
+    model = RandomForestClassifier(max_depth=max_depth,
+                                   random_state=0)
+    model.fit(X_train, trainy)
+    #model.fit(train_x, trainy)
 
     ## Lime explainer
-    #rf_exp_lime = lime_tabular.LimeTabularExplainer(
-    #    training_data = np.array(train_x),
-    #    feature_names = cols,
-    #    class_names=['Repair', 'No Repair'],
-    #    mode='classification'
-    #)
+    rf_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='classification'
+    )
 
     ## Explaining the instances using LIME
-    #instance_exp = rf_exp_lime.explain_instance(
-    #    data_row = test_x.iloc[4],
-    #    predict_fn = model.predict_proba
-    #)
+    instance_exp = rf_exp_lime.explain_instance(
+        data_row = X_train.iloc[4],
+        predict_fn = model.predict_proba
+    )
+
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('lime_report.jpg')
+    #print(instance_exp)
 
     # rf_exp_lime.show_in_notebook(show_table=True)
 

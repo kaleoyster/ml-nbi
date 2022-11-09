@@ -24,6 +24,10 @@ import shap
 from shap import KernelExplainer
 from shap import summary_plot
 
+# LIME
+import lime
+from lime import lime_tabular
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -54,39 +58,37 @@ def logistic_regression_utility(train_x, trainy,
         kappa: Kappa Value
         model: Logistic Regression Model
     """
+    X_train = pd.DataFrame(train_x)
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
 
-    explainer = shap.Explainer(model, train_x)
-    #shap_values = explainer(np.array(test_x, dtype=int))
+    # SHAP
+    explainer = shap.Explainer(model, test_x)
     shap_values = explainer(test_x)
-    int_shap = np.array(shap_values, dtype=int)
-    print(int_shap)
-    #summary_plot(int_shap)
-    #shap.plots.beeswarm(shap_values)
+    int_shap = np.array(shap_values.values, dtype=int)
 
-    #shap.plots.beeswarm(shap_values)#, X_test_array, feature_names=vectorizer.get_feature_names())
-    #prediction_prob = model.predict_proba(test_x)
+    # LIME:
+    log_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = train_x,
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        #mode='regression'
+        discretize_continuous = True
+    )
 
-    # Shap
-    # TODO: Don't know how does this work
-    #testing_data = shap.sample(train_x, 1)
-    #log_exp = shap.Explainer(model, train_x)
-    #log_exp = KernelExplainer(model=model.predict_proba, data=testing_data)
+    ## Explaining the instances using LIME
+    instance_exp = log_exp_lime.explain_instance(
+        data_row = X_train.values[4],
+        predict_fn = model.predict_proba
+    )
 
-    #log_sv = np.array(log_exp.shap_values(train_x))
-    #log_ev = np.array(log_exp.expected_value)
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('lg_lime_report.jpg')
 
-    #log_sv = log_exp.shap_values(train_x)
-    #log_ev = log_exp.expected_value
 
-    # Cat boost:
-    #log_sv = log_exp(test_x)
-    #print("Shape of the RF values:", log_sv[0])
-    #shap.plots.beeswarm(log_sv)#, X_test_array, feature_names=vectorizer.get_feature_names())
-    #print("Shape of the Light boost Shap Values")
-    #summary_plot(log_sv, train_x)
+    summary_plot(int_shap)
 
+    prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
@@ -101,7 +103,7 @@ def logistic_regression_utility(train_x, trainy,
 
 def main():
     X, y, cols = preprocess()
-    kfold = KFold(5, shuffle=True, random_state=1)
+    kfold = KFold(2, shuffle=True, random_state=1)
 
     # X is the dataset
     performance = defaultdict(list)

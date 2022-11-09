@@ -19,10 +19,14 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import GradientBoostingClassifier
 
-# shap
+# SHAP
 import shap
 from shap import TreeExplainer
 from shap import summary_plot
+
+# LIME
+import lime
+from lime import lime_tabular
 
 # Metrics and stats
 from sklearn.metrics import classification_report
@@ -52,12 +56,31 @@ def gradient_boosting_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
+    #TODO: add column names to new dataframe
+    X_train = pd.DataFrame(train_x)
+
     model = GradientBoostingClassifier(n_estimators=100,
                                        learning_rate=1.0,
                                        max_depth=max_depth,
                                        random_state=0)
-    model.fit(train_x, trainy)
+    model.fit(X_train, trainy)
+    grad_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='classification'
+    )
 
+    # Explaining the LIME for specific instance
+    instance_exp = grad_exp_lime.explain_instance(
+        data_row = X_train.iloc[4],
+        predict_fn = model.predict_proba
+    )
+
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('grad_lime_report.jpg')
+
+    #model.fit(train_x, trainy)
     g_exp = TreeExplainer(model)
     g_sv = np.array(g_exp.shap_values(train_x))
     g_ev = np.array(g_exp.expected_value)
@@ -68,9 +91,6 @@ def gradient_boosting_utility(train_x, trainy,
     summary_plot(g_sv, train_x)
 
     prediction = model.predict(test_x)
-
-
-
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
@@ -103,8 +123,6 @@ def main():
     print(np.mean(performance['accuracy']))
     print(performance['kappa'])
     print(np.mean(performance['kappa']))
-
-
 
     return performance
 

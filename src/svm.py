@@ -28,6 +28,10 @@ import shap
 from shap import KernelExplainer
 from shap import summary_plot
 
+# LIME
+import lime
+from lime import lime_tabular
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -59,20 +63,44 @@ def support_vector_utility(train_x, trainy,
         kappa: Kappa Value
         model: Support vector machine Model
     """
-    model = make_pipeline(StandardScaler(), SVC(gamma='auto', probability=True))
+    X_train = pd.DataFrame(train_x)
+    model = make_pipeline(StandardScaler(),
+                          SVC(gamma='auto',
+                              probability=True))
     model.fit(train_x, trainy)
     prediction = model.predict(test_x)
-
     prediction_prob = model.predict_proba(test_x)
+    data_sample = shap.sample(test_x, 20)
+    svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
 
-    svm_exp = KernelExplainer(model=model.predict_proba, data=train_x)
-    svm_sv = np.array(svm_exp.shap_values(train_x))
-    svm_ev = np.array(svm_exp.expected_value)
+    #print(svm_exp.shap_values(test_x))
 
-    svm_sv = svm_exp.shap_values(train_x)
-    svm_ev = svm_exp.expected_value
+    #svm_sv = np.array(svm_exp.shap_values(train_x))
+    #print(svm_exp)
+    #svm_ev = np.array(svm_exp.expected_value)
 
-    summary_plot(svm_sv, train_x)
+    #svm_sv = svm_exp.shap_values(train_x)
+    #svm_ev = svm_exp.expected_value
+
+    # LIME:
+    svm_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='classification'
+    )
+
+    ## Explaining the instances using LIME
+    instance_exp = svm_exp_lime.explain_instance(
+        data_row = X_train.values[4],
+        predict_fn = model.predict_proba
+    )
+
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('svm_lime_report.jpg')
+
+
+    #summary_plot(svm_sv, train_x)
 
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)

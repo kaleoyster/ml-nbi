@@ -15,9 +15,15 @@ from tqdm import tqdm
 import pydotplus
 from xgboost import XGBRegressor
 from sklearn.model_selection import KFold
+
+# SHAP
 import shap
 from shap import TreeExplainer
 from shap import summary_plot
+
+# LIME
+import lime
+from lime import lime_tabular
 
 # Metrics and stats
 from sklearn.metrics import classification_report
@@ -70,18 +76,42 @@ def xgb_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
+    # New dataframe
+    X_train = pd.DataFrame(train_x)
+    #print(X_train)
+    #print(X_train.dtypes)
+
     model = XGBRegressor(objective='reg:squarederror')
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     model.fit(train_x, trainy)
+    #model.fit(train_x, trainy)
     xgb_exp = TreeExplainer(model)
 
-    xgb_sv = np.array(xgb_exp.shap_values(train_x))
-    xgb_ev = np.array(xgb_exp.expected_value)
+    #xgb_sv = np.array(xgb_exp.shap_values(train_x))
+    #xgb_ev = np.array(xgb_exp.expected_value)
 
     xgb_sv = xgb_exp.shap_values(train_x)
     xgb_ev = xgb_exp.expected_value
 
-    # Cat boost:
+    # LIME:
+    xgb_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='regression'
+    )
+
+    ## Explaining the instances using LIME
+    instance_exp = xgb_exp_lime.explain_instance(
+        data_row = X_train.values[4],
+        predict_fn = model.predict
+    )
+
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('xgb_lime_report.jpg')
+
+    #xgb_boost_lime.show_in_notebook(show_table=True)
+    # RF
     print("Shape of the RF values:", xgb_sv[0])
     summary_plot(xgb_sv, train_x)
 
@@ -105,7 +135,6 @@ def xgb_utility(train_x, trainy,
 
 def main():
     X, y, cols = preprocess()
-
     # Convert y into 0, 1
     # If positive = 1
     # If negative = 0
@@ -116,8 +145,8 @@ def main():
         else:
             new_val = 0
         new_y.append(new_val)
-    y = np.array(new_y)
 
+    y = np.array(new_y)
     kfold = KFold(5, shuffle=True, random_state=1)
 
     #X is the dataset
@@ -132,7 +161,8 @@ def main():
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
-#
+
+    # Performance metrics
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))

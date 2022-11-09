@@ -14,10 +14,16 @@ from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
 import lightgbm as lgb
+
+# SHAP
 import shap
 from shap import TreeExplainer
 from shap import summary_plot
 from sklearn.model_selection import KFold
+
+# LIME
+import lime
+from lime import lime_tabular
 
 # Metrics and stats
 from sklearn import metrics
@@ -50,23 +56,39 @@ def light_boost_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
+    X_train = pd.DataFrame(train_x)
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
+
     model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
 
     lg_exp = TreeExplainer(model)
     #lg_exp = shap.Explainer(model)
     #lg_sv = explainer(train_x)
 
-    lg_sv = np.array(lg_exp.shap_values(train_x))
-    lg_ev = np.array(lg_exp.expected_value)
-
     lg_sv = lg_exp.shap_values(train_x)
     lg_ev = lg_exp.expected_value
 
-    # Cat boost:
+    # LIME:
+    lg_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='regression'
+    )
+
+    ## Explaining the instances using LIME
+    instance_exp = lg_exp_lime.explain_instance(
+        data_row = X_train.values[4],
+        predict_fn = model.predict
+    )
+
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('lg_lime_report.jpg')
+
     print("Shape of the RF values:", lg_sv[0])
     print("Shape of the Light boost Shap Values")
+
     summary_plot(lg_sv, train_x)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 

@@ -22,6 +22,10 @@ import shap
 from shap import TreeExplainer
 from shap import summary_plot
 
+# Import LIME
+import lime
+from lime import lime_tabular
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -53,8 +57,28 @@ def tree_utility(train_x, trainy,
         kappa: Kappa Value
         model: Decision Tree Model
     """
+    # new dataframes
+    X_train = pd.DataFrame(train_x)
+
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
-    model.fit(train_x, trainy)
+    model.fit(X_train, trainy)
+    #model.fit(train_x, trainy)
+
+    dt_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='classification'
+    )
+
+    ## Explaining the instances using LIME
+    instance_exp = dt_exp_lime.explain_instance(
+        data_row = X_train.iloc[4],
+        predict_fn = model.predict_proba
+    )
+
+    fig = instance_exp.as_pyplot_figure()
+    fig.savefig('dt_lime_report.jpg')
 
     dt_exp = TreeExplainer(model)
     dt_sv = np.array(dt_exp.shap_values(train_x))
@@ -62,7 +86,6 @@ def tree_utility(train_x, trainy,
 
     dt_sv =  dt_exp.shap_values(train_x)
     dt_ev =  dt_exp.expected_value
-
 
     print("Shape of the RF values:", dt_sv[0])
     print("Shape of the Light boost Shap Values")

@@ -70,18 +70,18 @@ def light_boost_utility(train_x, trainy,
     lg_ev = lg_exp.expected_value
 
     # LIME:
-    lg_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='regression'
-    )
+   # lg_exp_lime = lime_tabular.LimeTabularExplainer(
+   #     training_data = np.array(X_train),
+   #     feature_names = X_train.columns,
+   #     class_names=['Repair', 'No Repair'],
+   #     mode='regression'
+   # )
 
-    ## Explaining the instances using LIME
-    instance_exp = lg_exp_lime.explain_instance(
-        data_row = X_train.values[4],
-        predict_fn = model.predict
-    )
+   # ## Explaining the instances using LIME
+   # instance_exp = lg_exp_lime.explain_instance(
+   #     data_row = X_train.values[4],
+   #     predict_fn = model.predict
+   # )
 
     fig = instance_exp.as_pyplot_figure()
     fig.savefig('lg_lime_report.jpg')

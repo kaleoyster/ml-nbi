@@ -546,4 +546,4 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     X = np.array(X)
     y = np.array(y)
 
-    return X, y, cols
+    return X, y, columns_final

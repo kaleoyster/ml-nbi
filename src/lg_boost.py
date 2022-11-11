@@ -56,7 +56,9 @@ def light_boost_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
-    X_train = pd.DataFrame(train_x)
+
+    X_train = pd.DataFrame(train_x, columns=cols)
+
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 
@@ -92,7 +94,6 @@ def light_boost_utility(train_x, trainy,
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
     #shap.plots.waterfall(lg_sv[0])
-
     #testing_accuracy = modelX_test.score(test_x, testy)
     prediction = model.predict(test_x)
     _acc = accuracy_score(testy, prediction)

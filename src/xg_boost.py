@@ -76,20 +76,17 @@ def xgb_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
-    # New dataframe
+    # Train model
     X_train = pd.DataFrame(train_x)
-    #print(X_train)
-    #print(X_train.dtypes)
 
     model = XGBRegressor(objective='reg:squarederror')
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
+
     model.fit(train_x, trainy)
     #model.fit(train_x, trainy)
+
+    # SHAP
     xgb_exp = TreeExplainer(model)
-
-    #xgb_sv = np.array(xgb_exp.shap_values(train_x))
-    #xgb_ev = np.array(xgb_exp.expected_value)
-
     xgb_sv = xgb_exp.shap_values(train_x)
     xgb_ev = xgb_exp.expected_value
 
@@ -101,20 +98,18 @@ def xgb_utility(train_x, trainy,
         mode='regression'
     )
 
-    ## Explaining the instances using LIME
+    # Explaining the instances using LIME
     instance_exp = xgb_exp_lime.explain_instance(
         data_row = X_train.values[4],
         predict_fn = model.predict
     )
 
     fig = instance_exp.as_pyplot_figure()
-    fig.savefig('xgb_lime_report.jpg')
-
+    #fig.savefig('xgb_lime_report.jpg')
     #xgb_boost_lime.show_in_notebook(show_table=True)
     # RF
     print("Shape of the RF values:", xgb_sv[0])
-    summary_plot(xgb_sv, train_x)
-
+    #summary_plot(xgb_sv, X_train)
     print("Shape of the XGB Shap values:", xgb_sv.shape)
 
     #Predictions
@@ -131,7 +126,7 @@ def xgb_utility(train_x, trainy,
                               weights='quadratic')
     fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
     _auc = auc(fpr, tpr)
-    return _acc, _cm, _cr, _kappa, _auc
+    return _acc, _cm, _cr, _kappa, _auc, instance_exp, xgb_sv
 
 def main():
     X, y, cols = preprocess()
@@ -154,14 +149,16 @@ def main():
     for foldTrainX, foldTestX in kfold.split(X):
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                            X[foldTestX], y[foldTestX]
-        # Check the distribution
         # structure numbers
-        acc, cm, cr, kappa, auc = xgb_utility(trainX, trainy, testX, testy, cols)
+
+        acc, cm, cr, kappa, auc, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
-
+        performance['shape_values'].append(xgb_sv)
+        performance['lime_val'].append(xgb_lime)
+#
     # Performance metrics
     print('Performance metrics:')
     print(performance['accuracy'])

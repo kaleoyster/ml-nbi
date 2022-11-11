@@ -61,7 +61,6 @@ def light_boost_utility(train_x, trainy,
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 
     model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
-
     lg_exp = TreeExplainer(model)
     #lg_exp = shap.Explainer(model)
     #lg_sv = explainer(train_x)
@@ -70,24 +69,24 @@ def light_boost_utility(train_x, trainy,
     lg_ev = lg_exp.expected_value
 
     # LIME:
-   # lg_exp_lime = lime_tabular.LimeTabularExplainer(
-   #     training_data = np.array(X_train),
-   #     feature_names = X_train.columns,
-   #     class_names=['Repair', 'No Repair'],
-   #     mode='regression'
-   # )
+    lg_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='regression'
+    )
 
-   # ## Explaining the instances using LIME
-   # instance_exp = lg_exp_lime.explain_instance(
-   #     data_row = X_train.values[4],
-   #     predict_fn = model.predict
-   # )
+    ## Explaining the instances using LIME
+    instance_exp = lg_exp_lime.explain_instance(
+        data_row = X_train.values[4],
+        predict_fn = model.predict
+    )
 
     fig = instance_exp.as_pyplot_figure()
     fig.savefig('lg_lime_report.jpg')
 
-    print("Shape of the RF values:", lg_sv[0])
-    print("Shape of the Light boost Shap Values")
+    #print("Shape of the RF values:", lg_sv[0])
+    #print("Shape of the Light boost Shap Values")
 
     summary_plot(lg_sv, train_x)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
@@ -105,7 +104,7 @@ def light_boost_utility(train_x, trainy,
 
     #fpr, tpr, threshold = metrics.roc_curve(testy, prediction, pos_label=2)
     #_auc = metrics.auc(fpr, tpr)
-    return _acc, _cm, _cr, kappa
+    return _acc, _cm, _cr, kappa, instance_exp, lg_sv
 
 def main():
     X, y, cols = preprocess()
@@ -131,19 +130,20 @@ def main():
         # structure numbers
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
-        acc, cm, cr, kappa = light_boost_utility(trainX, trainy, testX, testy, cols)
+        acc, cm, cr, kappa, lg_lime, lg_sv = light_boost_utility(trainX, trainy, testX, testy, cols)
 
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
+        performance['shape_values'].append(lg_sv)
+        performance['lime_val'].append(lg_lime)
 #
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))
     print(performance['kappa'])
     print(np.mean(performance['kappa']))
-
 
     return performance
 

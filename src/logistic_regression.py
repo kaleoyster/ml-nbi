@@ -85,8 +85,7 @@ def logistic_regression_utility(train_x, trainy,
     fig = instance_exp.as_pyplot_figure()
     fig.savefig('lg_lime_report.jpg')
 
-
-    summary_plot(int_shap)
+    summary_plot(int_shap, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
@@ -99,7 +98,7 @@ def logistic_regression_utility(train_x, trainy,
     #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, _kappa, model
+    return acc, _cm, _cr, _kappa, model, instance_exp, int_shap
 
 def main():
     X, y, cols = preprocess()
@@ -112,12 +111,14 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel = logistic_regression_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
                                                  testX, testy, cols)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
+        performance['shap_values'].append(lr_sv)
+        performance['lime_val'].append(lr_lime)
 
     print('Performance metrics:')
     print(performance['accuracy'])

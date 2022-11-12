@@ -63,7 +63,7 @@ def support_vector_utility(train_x, trainy,
         kappa: Kappa Value
         model: Support vector machine Model
     """
-    X_train = pd.DataFrame(train_x)
+    X_train = pd.DataFrame(train_x, columns=cols)
     model = make_pipeline(StandardScaler(),
                           SVC(gamma='auto',
                               probability=True))
@@ -79,7 +79,7 @@ def support_vector_utility(train_x, trainy,
     #print(svm_exp)
     #svm_ev = np.array(svm_exp.expected_value)
 
-    #svm_sv = svm_exp.shap_values(train_x)
+    svm_sv = svm_exp.shap_values(train_x)
     #svm_ev = svm_exp.expected_value
 
     # LIME:
@@ -99,8 +99,7 @@ def support_vector_utility(train_x, trainy,
     fig = instance_exp.as_pyplot_figure()
     fig.savefig('svm_lime_report.jpg')
 
-
-    #summary_plot(svm_sv, train_x)
+    summary_plot(svm_sv, train_x, feature_names=cols)
 
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
@@ -111,7 +110,7 @@ def support_vector_utility(train_x, trainy,
 #    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
 #    _auc = auc(fpr, tpr)
 
-    return acc, _cm, _cr, kappa, model
+    return acc, _cm, _cr, kappa, model, instance_exp, svm_sv
 
 def main():
     X, y, cols = preprocess()
@@ -124,13 +123,15 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel = support_vector_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gmodel, svm_lime, svm_sv = support_vector_utility(trainX, trainy,
                                                  testX, testy, cols)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['confusion_matrix'].append(gcr)
         performance['classification_report'].append(gcr)
-
+        performance['shap_values'].append(svm_sv)
+        performance['lime_val'].append(svm_lime)
+#
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))

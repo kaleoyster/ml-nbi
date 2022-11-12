@@ -87,7 +87,7 @@ def random_forest_utility(train_x, trainy,
     rf_exp = TreeExplainer(model)
     rf_sv = np.array(rf_exp.shap_values(test_x))
     rf_ev = np.array(rf_exp.expected_value)
-    #summary_plot(rf_sv[0], test_x)
+    #summary_plot(rf_sv[0], test_x, feature_names=cols)
 
     # Predictions
     prediction = model.predict(test_x)
@@ -99,7 +99,7 @@ def random_forest_utility(train_x, trainy,
     #_fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model
+    return acc, _cm, _cr, kappa, model, instance_exp, rf_sv
 
 def main():
     X, y, cols = preprocess()
@@ -112,12 +112,15 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel = random_forest_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gmodel, rf_lime, rf_sv = random_forest_utility(trainX, trainy,
                                                  testX, testy, cols, max_depth=10)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
+        performance['shap_values'].append(rf_sv)
+        performance['lime_val'].append(rf_lime)
+#
 
     print('Performance metrics:')
     print(performance['accuracy'])

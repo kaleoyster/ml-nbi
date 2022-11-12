@@ -58,8 +58,8 @@ def tree_utility(train_x, trainy,
         model: Decision Tree Model
     """
     # new dataframes
+    #X_train = pd.DataFrame(train_x, columns=cols)
     X_train = pd.DataFrame(train_x)
-
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     model.fit(X_train, trainy)
     #model.fit(train_x, trainy)
@@ -87,9 +87,9 @@ def tree_utility(train_x, trainy,
     dt_sv =  dt_exp.shap_values(train_x)
     dt_ev =  dt_exp.expected_value
 
-    print("Shape of the RF values:", dt_sv[0])
-    print("Shape of the Light boost Shap Values")
-    summary_plot(dt_sv, train_x)
+    #print("Shape of the RF values:", dt_sv[0])
+    #print("Shape of the Light boost Shap Values")
+    #summary_plot(dt_sv, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
@@ -102,7 +102,7 @@ def tree_utility(train_x, trainy,
     #fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
     #_auc = metrics.auc(fpr, tpr)
 
-    return acc, _cm, _cr, _kappa, model, _fi
+    return acc, _cm, _cr, _kappa, model, _fi, instance_exp, dt_sv
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
@@ -271,7 +271,7 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # Entropy
-        acc, cm, cr, kappa, model, fi = tree_utility(trainX, trainy,
+        acc, cm, cr, kappa, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=30)
@@ -280,8 +280,9 @@ def main():
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['feature_importance'].append(fi)
-
-
+        performance['shap_values'].append(dt_sv)
+        performance['lime_val'].append(dt_lime)
+#
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))

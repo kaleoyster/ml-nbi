@@ -58,11 +58,13 @@ def light_boost_utility(train_x, trainy,
     """
 
     X_train = pd.DataFrame(train_x, columns=cols)
-
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 
-    model.fit(train_x, trainy, eval_set=[(test_x, testy), (train_x, trainy)], verbose=20, eval_metric='logloss')
+    model.fit(train_x, trainy, 
+              eval_set=[(test_x, testy), (train_x, trainy)], 
+              verbose=20, eval_metric='logloss')
+
     lg_exp = TreeExplainer(model)
     #lg_exp = shap.Explainer(model)
     #lg_sv = explainer(train_x)
@@ -90,7 +92,7 @@ def light_boost_utility(train_x, trainy,
     #print("Shape of the RF values:", lg_sv[0])
     #print("Shape of the Light boost Shap Values")
 
-    summary_plot(lg_sv, train_x)
+    #summary_plot(lg_sv, train_x, feature_names=cols)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
     #shap.plots.waterfall(lg_sv[0])
@@ -137,7 +139,7 @@ def main():
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
-        performance['shape_values'].append(lg_sv)
+        performance['shap_values'].append(lg_sv)
         performance['lime_val'].append(lg_lime)
 #
     print('Performance metrics:')

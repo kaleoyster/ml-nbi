@@ -77,7 +77,7 @@ def xgb_utility(train_x, trainy,
         model: Random Forest Model
     """
     # Train model
-    X_train = pd.DataFrame(train_x)
+    X_train = pd.DataFrame(train_x, columns=cols)
 
     model = XGBRegressor(objective='reg:squarederror')
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
@@ -105,12 +105,13 @@ def xgb_utility(train_x, trainy,
     )
 
     fig = instance_exp.as_pyplot_figure()
-    #fig.savefig('xgb_lime_report.jpg')
+    fig.savefig('xgb_lime_report.jpg')
+
     #xgb_boost_lime.show_in_notebook(show_table=True)
     # RF
-    print("Shape of the RF values:", xgb_sv[0])
-    #summary_plot(xgb_sv, X_train)
-    print("Shape of the XGB Shap values:", xgb_sv.shape)
+    #print("Shape of the RF values:", xgb_sv[0])
+    #print("Shape of the XGB Shap values:", xgb_sv.shape)
+    #summary_plot(xgb_sv, X_train, feature_names=cols)
 
     #Predictions
     prediction = model.predict(test_x)
@@ -156,7 +157,7 @@ def main():
         performance['kappa'].append(kappa)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
-        performance['shape_values'].append(xgb_sv)
+        performance['shap_values'].append(xgb_sv)
         performance['lime_val'].append(xgb_lime)
 #
     # Performance metrics

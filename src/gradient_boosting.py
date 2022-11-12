@@ -58,7 +58,6 @@ def gradient_boosting_utility(train_x, trainy,
     """
     #TODO: add column names to new dataframe
     X_train = pd.DataFrame(train_x)
-
     model = GradientBoostingClassifier(n_estimators=100,
                                        learning_rate=1.0,
                                        max_depth=max_depth,
@@ -88,7 +87,7 @@ def gradient_boosting_utility(train_x, trainy,
     g_sv = g_exp.shap_values(train_x)
     g_ev = g_exp.expected_value
 
-    summary_plot(g_sv, train_x)
+    #summary_plot(g_sv, train_x, feature_names=cols)
 
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
@@ -97,7 +96,7 @@ def gradient_boosting_utility(train_x, trainy,
     #_fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model
+    return acc, _cm, _cr, kappa, model, instance_exp, g_sv
 
 def main():
     X, y, cols = preprocess()
@@ -110,13 +109,15 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel = gradient_boosting_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gmodel, gb_lime, gb_sv = gradient_boosting_utility(trainX, trainy,
                                                  testX, testy, cols, max_depth=7)
 
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
+        performance['shap_values'].append(gb_sv)
+        performance['lime_val'].append(gb_lime)
 #
     print('Performance metrics:')
     print(performance['accuracy'])

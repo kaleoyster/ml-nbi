@@ -19,6 +19,9 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import GradientBoostingClassifier
 
+# Permutation importance
+from sklearn.inspection import permutation_importance
+
 # SHAP
 import shap
 from shap import TreeExplainer
@@ -63,6 +66,16 @@ def gradient_boosting_utility(train_x, trainy,
                                        max_depth=max_depth,
                                        random_state=0)
     model.fit(X_train, trainy)
+    # Permutation mean of the feature importance
+    p_imp = permutation_importance(model,
+                                   test_x,
+                                   testy,
+                                   n_repeats=10,
+                                random_state=0)
+
+    p_imp_mean = p_imp.importances_mean
+    p_imp_std = p_imp.importances_std
+
     grad_exp_lime = lime_tabular.LimeTabularExplainer(
         training_data = np.array(X_train),
         feature_names = X_train.columns,
@@ -93,10 +106,10 @@ def gradient_boosting_utility(train_x, trainy,
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
-    #_fi = dict(zip(cols, model.feature_importances_))
+    _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model, instance_exp, g_sv
+    return acc, _cm, _cr, kappa, model, _fi, instance_exp, g_sv
 
 def main():
     X, y, cols = preprocess()
@@ -109,21 +122,23 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel, gb_lime, gb_sv = gradient_boosting_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX, trainy,
                                                  testX, testy, cols, max_depth=7)
 
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
+        performance['feature_importance'].append(fi)
         performance['shap_values'].append(gb_sv)
         performance['lime_val'].append(gb_lime)
-#
+
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))
     print(performance['kappa'])
     print(np.mean(performance['kappa']))
+    #print(performance['feature_importance'])
 
     return performance
 

@@ -17,6 +17,7 @@ from tqdm import tqdm
 import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.inspection import permutation_importance
 
 # From Shap
 import shap
@@ -62,6 +63,15 @@ def random_forest_utility(train_x, trainy,
                                    random_state=0)
     model.fit(X_train, trainy)
     #model.fit(train_x, trainy)
+    p_imp = permutation_importance(model,
+                                   test_x,
+                                   testy,
+                                   n_repeats=10,
+                                random_state=0)
+
+    p_imp_mean = p_imp.importances_mean
+    p_imp_std = p_imp.importances_std
+
 
     ## Lime explainer
     rf_exp_lime = lime_tabular.LimeTabularExplainer(
@@ -96,10 +106,10 @@ def random_forest_utility(train_x, trainy,
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
-    #_fi = dict(zip(cols, model.feature_importances_))
+    _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, kappa, model, instance_exp, rf_sv
+    return acc, _cm, _cr, kappa, model, _fi, instance_exp, rf_sv
 
 def main():
     X, y, cols = preprocess()
@@ -112,22 +122,22 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel, rf_lime, rf_sv = random_forest_utility(trainX, trainy,
-                                                 testX, testy, cols, max_depth=10)
+        gacc, gcm, gcr, gkappa, gmodel, fi, rf_lime, rf_sv = random_forest_utility(trainX, trainy,
+                 testX, testy, cols, max_depth=10)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
+        performance['feature_importance'].append(fi)
         performance['shap_values'].append(rf_sv)
         performance['lime_val'].append(rf_lime)
-#
 
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))
     print(performance['kappa'])
     print(np.mean(performance['kappa']))
-
+    #print(performance['feature_importance'])
 
     return performance
 

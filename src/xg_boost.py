@@ -13,7 +13,11 @@ import numpy as np
 from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
-from xgboost import XGBRegressor
+from matplotlib import pyplot
+
+# XGBoost
+from xgboost.sklearn import XGBRegressor
+from xgboost import plot_importance
 from sklearn.model_selection import KFold
 
 # SHAP
@@ -33,6 +37,9 @@ from sklearn.metrics import cohen_kappa_score
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+
+# Permutation importance
+from sklearn.inspection import permutation_importance
 
 # Preprocessing
 from preprocessing import *
@@ -65,7 +72,7 @@ def xgb_utility(train_x, trainy,
 
     Args:
         trainX: Features of Training Set
-        trainy: Ground truth of Training Set
+        tr_fainy: Ground truth of Training Set
         testX: Features of Testing Set
         testy: Ground truth of Testing Set
 
@@ -78,11 +85,43 @@ def xgb_utility(train_x, trainy,
     """
     # Train model
     X_train = pd.DataFrame(train_x, columns=cols)
+    y_train = pd.DataFrame(trainy)
 
     model = XGBRegressor(objective='reg:squarederror')
-    #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 
-    model.fit(train_x, trainy)
+    #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
+    # dtrain = model.DMatrix(train_x, label=train_y)
+    # watchlist = [(dtrain, 'train')]
+    # param = {'max_depth': 6, 'learning_rate': 0.03}
+    # num_round = 200
+    # bst = model.train(param, dtrain, num_round, watchlist)
+
+   # model.fit(train_x, trainy)
+    model.fit(train_x, trainy,
+              eval_set=[(test_x, testy), (train_x, trainy)],
+              verbose=20, eval_metric='logloss')
+
+    p_imp = permutation_importance(model, test_x,
+                                   testy, n_repeats=10,
+                                   random_state=0)
+
+    p_imp_mean = p_imp.importances_mean
+    p_imp_std = p_imp.importances_std
+
+    lg_exp = TreeExplainer(model)
+
+    #model.fit(X_train, y_train)
+    #print(Counter(trainy))
+    #importance_type = ['weight', 'gain', 'cover', 'total_gain', 'total_cover']
+    print("printing feature importance")
+    _fi = model.get_booster().get_score(importance_type='gain')
+    _fn = model.get_booster().feature_names
+    print(len(_fi))
+    print(_fn)
+
+    #print(model.feature_importances_)
+    plot_importance(model)
+    #pyplot.show()
     #model.fit(train_x, trainy)
 
     # SHAP
@@ -120,7 +159,9 @@ def xgb_utility(train_x, trainy,
     #_mse = mean_squared_error(prediction, testy)
     _acc = accuracy_score(testy, b_prediction)
     _cm = confusion_matrix(testy, b_prediction)
-    _cr = classification_report(testy, b_prediction, zero_division=0)
+    _cr = classification_report(testy,
+                                b_prediction,
+                                zero_division=0)
 
     #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(b_prediction, testy,
@@ -151,7 +192,6 @@ def main():
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                            X[foldTestX], y[foldTestX]
         # structure numbers
-
         acc, cm, cr, kappa, auc, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
@@ -159,7 +199,7 @@ def main():
         performance['classification_report'].append(cr)
         performance['shap_values'].append(xgb_sv)
         performance['lime_val'].append(xgb_lime)
-#
+
     # Performance metrics
     print('Performance metrics:')
     print(performance['accuracy'])

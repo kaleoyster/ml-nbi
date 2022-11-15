@@ -17,6 +17,9 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.tree import DecisionTreeClassifier
 
+# Permutation importance
+from sklearn.inspection import permutation_importance
+
 # Shap
 import shap
 from shap import TreeExplainer
@@ -63,6 +66,16 @@ def tree_utility(train_x, trainy,
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     model.fit(X_train, trainy)
     #model.fit(train_x, trainy)
+
+    # PErmutation mean of the feature importance
+    p_imp = permutation_importance(model,
+                                   test_x,
+                                   testy,
+                                   n_repeats=10,
+                                random_state=0)
+
+    p_imp_mean = p_imp.importances_mean
+    p_imp_std = p_imp.importances_std
 
     dt_exp_lime = lime_tabular.LimeTabularExplainer(
         training_data = np.array(X_train),

@@ -15,6 +15,9 @@ from tqdm import tqdm
 import pydotplus
 import lightgbm as lgb
 
+# Permutation importance
+from sklearn.inspection import permutation_importance
+
 # SHAP
 import shap
 from shap import TreeExplainer
@@ -61,9 +64,25 @@ def light_boost_utility(train_x, trainy,
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 
-    model.fit(train_x, trainy, 
-              eval_set=[(test_x, testy), (train_x, trainy)], 
+    model.fit(train_x, trainy,
+              eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
+
+    print("printing feature importance")
+    _fi = model.feature_importances_
+    #_fn = model.feature_names
+    print(_fi)
+    print(len(cols))
+    #print(_fn)
+    # Permutation mean of the feature importance
+    p_imp = permutation_importance(model,
+                                   test_x,
+                                   testy,
+                                   n_repeats=10,
+                                random_state=0)
+
+    p_imp_mean = p_imp.importances_mean
+    p_imp_std = p_imp.importances_std
 
     lg_exp = TreeExplainer(model)
     #lg_exp = shap.Explainer(model)
@@ -141,7 +160,7 @@ def main():
         performance['classification_report'].append(cr)
         performance['shap_values'].append(lg_sv)
         performance['lime_val'].append(lg_lime)
-#
+
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))

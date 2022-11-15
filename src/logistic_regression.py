@@ -19,6 +19,9 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
 
+# Permutation importance
+from sklearn.inspection import PartialDependenceDisplay
+
 # SHAP
 import shap
 from shap import KernelExplainer
@@ -61,6 +64,12 @@ def logistic_regression_utility(train_x, trainy,
     X_train = pd.DataFrame(train_x)
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
+
+    # Partial dependency
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, train_x, features)
+    print("PartialDependenceDisplay Working OK")
+
 
     # SHAP
     explainer = shap.Explainer(model, test_x)

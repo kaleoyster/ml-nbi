@@ -7,7 +7,6 @@ Date:
 """
 
 import sys
-import sys
 import csv
 import pandas as pd
 import numpy as np
@@ -19,8 +18,9 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import GradientBoostingClassifier
 
-# Permutation importance
+# Permutation importance and pdp
 from sklearn.inspection import permutation_importance
+from sklearn.inspection import PartialDependenceDisplay
 
 # SHAP
 import shap
@@ -66,16 +66,22 @@ def gradient_boosting_utility(train_x, trainy,
                                        max_depth=max_depth,
                                        random_state=0)
     model.fit(X_train, trainy)
+
     # Permutation mean of the feature importance
     p_imp = permutation_importance(model,
                                    test_x,
                                    testy,
                                    n_repeats=10,
                                 random_state=0)
-
     p_imp_mean = p_imp.importances_mean
     p_imp_std = p_imp.importances_std
 
+    # Partial dependency
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, X_train, features)
+    print("PartialDependenceDisplay Working OK")
+
+    # LIME
     grad_exp_lime = lime_tabular.LimeTabularExplainer(
         training_data = np.array(X_train),
         feature_names = X_train.columns,

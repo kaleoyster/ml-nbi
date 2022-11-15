@@ -19,6 +19,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 # Permutation importance
 from sklearn.inspection import permutation_importance
+from sklearn.inspection import PartialDependenceDisplay
 
 # Shap
 import shap
@@ -76,6 +77,11 @@ def tree_utility(train_x, trainy,
 
     p_imp_mean = p_imp.importances_mean
     p_imp_std = p_imp.importances_std
+
+    # Partial dependency
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, X_train, features)
+    print("PartialDependenceDisplay Working OK")
 
     dt_exp_lime = lime_tabular.LimeTabularExplainer(
         training_data = np.array(X_train),

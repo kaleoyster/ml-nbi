@@ -23,6 +23,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
+# PDP
+from sklearn.inspection import PartialDependenceDisplay
+
 # SHAP
 import shap
 from shap import KernelExplainer
@@ -68,6 +71,11 @@ def support_vector_utility(train_x, trainy,
                           SVC(gamma='auto',
                               probability=True))
     model.fit(train_x, trainy)
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, train_x, features)
+    print("PartialDependenceDisplay Working OK")
+
+
     prediction = model.predict(test_x)
     prediction_prob = model.predict_proba(test_x)
     data_sample = shap.sample(test_x, 20)
@@ -81,6 +89,11 @@ def support_vector_utility(train_x, trainy,
 
     svm_sv = svm_exp.shap_values(train_x)
     #svm_ev = svm_exp.expected_value
+
+    # Partial dependency
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, X_train, features)
+    print("PartialDependenceDisplay Working OK")
 
     # LIME:
     svm_exp_lime = lime_tabular.LimeTabularExplainer(
@@ -131,7 +144,7 @@ def main():
         performance['classification_report'].append(gcr)
         performance['shap_values'].append(svm_sv)
         performance['lime_val'].append(svm_lime)
-#
+
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))

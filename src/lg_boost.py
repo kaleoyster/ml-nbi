@@ -17,6 +17,7 @@ import lightgbm as lgb
 
 # Permutation importance
 from sklearn.inspection import permutation_importance
+from sklearn.inspection import PartialDependenceDisplay
 
 # SHAP
 import shap
@@ -83,6 +84,11 @@ def light_boost_utility(train_x, trainy,
 
     p_imp_mean = p_imp.importances_mean
     p_imp_std = p_imp.importances_std
+
+    # Partial dependency
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, train_x, features)
+    print("PartialDependenceDisplay Working OK")
 
     lg_exp = TreeExplainer(model)
     #lg_exp = shap.Explainer(model)

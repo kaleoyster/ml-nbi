@@ -17,7 +17,10 @@ from tqdm import tqdm
 import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
+
+# Permutation importance
 from sklearn.inspection import permutation_importance
+from sklearn.inspection import PartialDependenceDisplay
 
 # From Shap
 import shap
@@ -72,6 +75,10 @@ def random_forest_utility(train_x, trainy,
     p_imp_mean = p_imp.importances_mean
     p_imp_std = p_imp.importances_std
 
+    # Partial dependency
+    features = [0, 1]
+    PartialDependenceDisplay.from_estimator(model, train_x, features)
+    print("PartialDependenceDisplay Working OK")
 
     ## Lime explainer
     rf_exp_lime = lime_tabular.LimeTabularExplainer(

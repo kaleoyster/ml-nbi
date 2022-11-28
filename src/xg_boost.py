@@ -156,7 +156,7 @@ def xgb_utility(train_x, trainy,
     # RF
     #print("Shape of the RF values:", xgb_sv[0])
     #print("Shape of the XGB Shap values:", xgb_sv.shape)
-    #summary_plot(xgb_sv, X_train, feature_names=cols)
+    summary_plot(xgb_sv, train_x, feature_names=cols)
 
     #Predictions
     prediction = model.predict(test_x)

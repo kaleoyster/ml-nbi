@@ -117,7 +117,7 @@ def light_boost_utility(train_x, trainy,
     #print("Shape of the RF values:", lg_sv[0])
     #print("Shape of the Light boost Shap Values")
 
-    #summary_plot(lg_sv, train_x, feature_names=cols)
+    summary_plot(lg_sv, train_x, feature_names=cols)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
     #shap.plots.waterfall(lg_sv[0])

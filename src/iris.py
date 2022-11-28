@@ -16,7 +16,7 @@ from preprocessing import *
 #print(data_file)
 
 #df = pd.read_csv(data_file)
-3df.head()
+#df.head()
 
 #X = df.iloc[:, 0:4].values
 #y = df.iloc[:, 4].values
@@ -30,16 +30,15 @@ from preprocessing import *
 #X, y = data_preprocessing()
 bridge_X, bridge_y, cols =  preprocess()
 print("Comparing features")
-print(X[:1])
+#print(X[:1])
 print(bridge_X[:1])
 #
 print("Comparing labels")
-print(y[:1])
+#print(y[:1])
 print(bridge_y[:1])
 
 encoder = LabelEncoder()
 y1 = encoder.fit_transform(bridge_y)
-
 Y = pd.get_dummies(y1).values
 #print(Y[0:5])
 

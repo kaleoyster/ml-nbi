@@ -105,6 +105,7 @@ def random_forest_utility(train_x, trainy,
     rf_sv = np.array(rf_exp.shap_values(test_x))
     rf_ev = np.array(rf_exp.expected_value)
     #summary_plot(rf_sv[0], test_x, feature_names=cols)
+    summary_plot(rf_sv, train_x, feature_names=cols)
 
     # Predictions
     prediction = model.predict(test_x)

@@ -1,7 +1,6 @@
 """
 Description:
     Regression model to predict the future maintenance of bridges
-
 Date:
    October 3rd, 2022
 """
@@ -94,7 +93,7 @@ def logistic_regression_utility(train_x, trainy,
     fig = instance_exp.as_pyplot_figure()
     fig.savefig('lg_lime_report.jpg')
 
-    summary_plot(int_shap, feature_names=cols)
+    summary_plot(int_shap, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)

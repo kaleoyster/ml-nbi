@@ -30,6 +30,9 @@ from shap import summary_plot
 import lime
 from lime import lime_tabular
 
+# LOFO
+from lofo import LOFOImportance, dataset, plot_importance
+
 # Metrics and stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -65,6 +68,19 @@ def tree_utility(train_x, trainy,
     #X_train = pd.DataFrame(train_x, columns=cols)
     X_train = pd.DataFrame(train_x)
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
+    cv = KFold(n_splits=4, shuffle=False)
+    lofo_importance = LOFOImportance(X_train,
+                                     cv=cv,
+                                     scoring='roc_auc',
+                                     model=model)
+    #print(lofo_importance.get_importance)
+    # Get the mean and standard deviation of the importances in pandas format
+    # Fix this error
+    #importance_df = lofo_importance.get_importance()
+
+    # plot the means and standard deviations of the importances
+    #plot_importance(importance_df, figsize=(12, 20))
+
     model.fit(X_train, trainy)
     #model.fit(train_x, trainy)
 
@@ -97,7 +113,7 @@ def tree_utility(train_x, trainy,
     )
 
     fig = instance_exp.as_pyplot_figure()
-    fig.savefig('dt_lime_report.jpg')
+    instance_exp.save_to_file('dt_lime_report.html')
 
     dt_exp = TreeExplainer(model)
     dt_sv = np.array(dt_exp.shap_values(train_x))
@@ -108,7 +124,7 @@ def tree_utility(train_x, trainy,
 
     #print("Shape of the RF values:", dt_sv[0])
     #print("Shape of the Light boost Shap Values")
-    #summary_plot(dt_sv, train_x, feature_names=cols)
+    summary_plot(dt_sv, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
@@ -181,7 +197,7 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     for depth in tqdm(range(1, 31), desc='\n Modeling DT'):
         tempG = []
         tempE = []
-        for foldTrainX, foldTestX in kfold.split(X):
+        for foldTrainX, foldTestX in KFold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                           X[foldTestX], y[foldTestX]
 

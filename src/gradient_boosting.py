@@ -106,7 +106,7 @@ def gradient_boosting_utility(train_x, trainy,
     g_sv = g_exp.shap_values(train_x)
     g_ev = g_exp.expected_value
 
-    #summary_plot(g_sv, train_x, feature_names=cols)
+    summary_plot(g_sv, train_x, feature_names=cols)
 
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)

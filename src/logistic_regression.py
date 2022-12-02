@@ -64,36 +64,36 @@ def logistic_regression_utility(train_x, trainy,
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, train_x, features)
-    print("PartialDependenceDisplay Working OK")
+   # # Partial dependency
+   # features = [0, 1]
+   # PartialDependenceDisplay.from_estimator(model, train_x, features)
+   # print("PartialDependenceDisplay Working OK")
 
 
-    # SHAP
-    explainer = shap.Explainer(model, test_x)
-    shap_values = explainer(test_x)
-    int_shap = np.array(shap_values.values, dtype=int)
+   # # SHAP
+   # explainer = shap.Explainer(model, test_x)
+   # shap_values = explainer(test_x)
+   # int_shap = np.array(shap_values.values, dtype=int)
 
-    # LIME:
-    log_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = train_x,
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        #mode='regression'
-        discretize_continuous = True
-    )
+   # # LIME:
+   # log_exp_lime = lime_tabular.LimeTabularExplainer(
+   #     training_data = train_x,
+   #     feature_names = X_train.columns,
+   #     class_names=['Repair', 'No Repair'],
+   #     #mode='regression'
+   #     discretize_continuous = True
+   # )
 
-    ## Explaining the instances using LIME
-    instance_exp = log_exp_lime.explain_instance(
-        data_row = X_train.values[4],
-        predict_fn = model.predict_proba
-    )
+   # ## Explaining the instances using LIME
+   # instance_exp = log_exp_lime.explain_instance(
+   #     data_row = X_train.values[4],
+   #     predict_fn = model.predict_proba
+   # )
 
-    fig = instance_exp.as_pyplot_figure()
-    fig.savefig('lg_lime_report.jpg')
+   # fig = instance_exp.as_pyplot_figure()
+   # fig.savefig('lg_lime_report.jpg')
 
-    summary_plot(int_shap, train_x, feature_names=cols)
+   # summary_plot(int_shap, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
@@ -104,13 +104,16 @@ def logistic_regression_utility(train_x, trainy,
     #_auc = auc(fpr, tpr)
     #_auc = metrics.roc_auc_score(testy, prediction_prob)
     #_fi = dict(zip(cols, model.feature_importances_))
+
+    instance_exp = []
+    int_shap = []
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
     return acc, _cm, _cr, _kappa, model, instance_exp, int_shap
 
 def main():
     X, y, cols = preprocess()
-    kfold = KFold(2, shuffle=True, random_state=1)
+    kfold = KFold(5, shuffle=True, random_state=1)
 
     # X is the dataset
     performance = defaultdict(list)

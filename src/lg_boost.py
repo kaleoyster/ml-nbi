@@ -69,55 +69,55 @@ def light_boost_utility(train_x, trainy,
               eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
 
-    print("printing feature importance")
-    _fi = model.feature_importances_
-    #_fn = model.feature_names
-    print(_fi)
-    print(len(cols))
-    #print(_fn)
-    # Permutation mean of the feature importance
-    p_imp = permutation_importance(model,
-                                   test_x,
-                                   testy,
-                                   n_repeats=10,
-                                random_state=0)
+   # print("printing feature importance")
+   # _fi = model.feature_importances_
+   # #_fn = model.feature_names
+   # print(_fi)
+   # print(len(cols))
+   # #print(_fn)
+   # # Permutation mean of the feature importance
+   # p_imp = permutation_importance(model,
+   #                                test_x,
+   #                                testy,
+   #                                n_repeats=10,
+   #                             random_state=0)
 
-    p_imp_mean = p_imp.importances_mean
-    p_imp_std = p_imp.importances_std
+   # p_imp_mean = p_imp.importances_mean
+   # p_imp_std = p_imp.importances_std
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, train_x, features)
-    print("PartialDependenceDisplay Working OK")
+   # # Partial dependency
+   # features = [0, 1]
+   # PartialDependenceDisplay.from_estimator(model, train_x, features)
+   # print("PartialDependenceDisplay Working OK")
 
-    lg_exp = TreeExplainer(model)
-    #lg_exp = shap.Explainer(model)
-    #lg_sv = explainer(train_x)
+   # lg_exp = TreeExplainer(model)
+   # #lg_exp = shap.Explainer(model)
+   # #lg_sv = explainer(train_x)
 
-    lg_sv = lg_exp.shap_values(train_x)
-    lg_ev = lg_exp.expected_value
+   # lg_sv = lg_exp.shap_values(train_x)
+   # lg_ev = lg_exp.expected_value
 
-    # LIME:
-    lg_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='regression'
-    )
+   # # LIME:
+   # lg_exp_lime = lime_tabular.LimeTabularExplainer(
+   #     training_data = np.array(X_train),
+   #     feature_names = X_train.columns,
+   #     class_names=['Repair', 'No Repair'],
+   #     mode='regression'
+   # )
 
-    ## Explaining the instances using LIME
-    instance_exp = lg_exp_lime.explain_instance(
-        data_row = X_train.values[4],
-        predict_fn = model.predict
-    )
+   # ## Explaining the instances using LIME
+   # instance_exp = lg_exp_lime.explain_instance(
+   #     data_row = X_train.values[4],
+   #     predict_fn = model.predict
+   # )
 
-    fig = instance_exp.as_pyplot_figure()
-    fig.savefig('lg_lime_report.jpg')
+   # fig = instance_exp.as_pyplot_figure()
+   # fig.savefig('lg_lime_report.jpg')
 
-    #print("Shape of the RF values:", lg_sv[0])
-    #print("Shape of the Light boost Shap Values")
+   # #print("Shape of the RF values:", lg_sv[0])
+   # #print("Shape of the Light boost Shap Values")
 
-    summary_plot(lg_sv, train_x, feature_names=cols)
+   # summary_plot(lg_sv, train_x, feature_names=cols)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
     #shap.plots.waterfall(lg_sv[0])
@@ -132,6 +132,8 @@ def light_boost_utility(train_x, trainy,
 
     #fpr, tpr, threshold = metrics.roc_curve(testy, prediction, pos_label=2)
     #_auc = metrics.auc(fpr, tpr)
+    instance_exp = []
+    lg_sv = []
     return _acc, _cm, _cr, kappa, instance_exp, lg_sv
 
 def main():

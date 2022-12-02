@@ -95,13 +95,19 @@ def logistic_regression_utility(train_x, trainy,
 
    # summary_plot(int_shap, train_x, feature_names=cols)
 
-    prediction_prob = model.predict_proba(test_x)
+    prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
-    #fpr, tpr, threshold = roc_curve(prediction, prediction_prob, pos_label=2)
-    #_auc = auc(fpr, tpr)
+    class_label = {'negative':0,
+                   'positive':1}
+    testy_num = [class_label[i] for i in testy]
+    fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+    print("printing fpr and tpr", fpr, tpr)
+    _auc = auc(fpr, tpr)
+    print("Printing area under curve")
+    print(_auc)
     #_auc = metrics.roc_auc_score(testy, prediction_prob)
     #_fi = dict(zip(cols, model.feature_importances_))
 

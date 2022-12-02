@@ -102,61 +102,61 @@ def xgb_utility(train_x, trainy,
               eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
 
-    p_imp = permutation_importance(model, test_x,
-                                   testy, n_repeats=10,
-                                   random_state=0)
+    #p_imp = permutation_importance(model, test_x,
+    #                               testy, n_repeats=10,
+    #                               random_state=0)
 
-    p_imp_mean = p_imp.importances_mean
-    p_imp_std = p_imp.importances_std
+    #p_imp_mean = p_imp.importances_mean
+    #p_imp_std = p_imp.importances_std
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, train_x, features)
-    print("PartialDependenceDisplay Working OK")
+    ## Partial dependency
+    #features = [0, 1]
+    #PartialDependenceDisplay.from_estimator(model, train_x, features)
+    #print("PartialDependenceDisplay Working OK")
 
-    lg_exp = TreeExplainer(model)
+    #lg_exp = TreeExplainer(model)
 
-    #model.fit(X_train, y_train)
-    #print(Counter(trainy))
-    #importance_type = ['weight', 'gain', 'cover', 'total_gain', 'total_cover']
-    print("printing feature importance")
-    _fi = model.get_booster().get_score(importance_type='gain')
-    _fn = model.get_booster().feature_names
-    print(len(_fi))
-    print(_fn)
+    ##model.fit(X_train, y_train)
+    ##print(Counter(trainy))
+    ##importance_type = ['weight', 'gain', 'cover', 'total_gain', 'total_cover']
+    #print("printing feature importance")
+    #_fi = model.get_booster().get_score(importance_type='gain')
+    #_fn = model.get_booster().feature_names
+    #print(len(_fi))
+    #print(_fn)
 
-    #print(model.feature_importances_)
-    plot_importance(model)
-    #pyplot.show()
-    #model.fit(train_x, trainy)
+    ##print(model.feature_importances_)
+    #plot_importance(model)
+    ##pyplot.show()
+    ##model.fit(train_x, trainy)
 
-    # SHAP
-    xgb_exp = TreeExplainer(model)
-    xgb_sv = xgb_exp.shap_values(train_x)
-    xgb_ev = xgb_exp.expected_value
+    ## SHAP
+    #xgb_exp = TreeExplainer(model)
+    #xgb_sv = xgb_exp.shap_values(train_x)
+    #xgb_ev = xgb_exp.expected_value
 
-    # LIME:
-    xgb_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='regression'
-    )
+    ## LIME:
+    #xgb_exp_lime = lime_tabular.LimeTabularExplainer(
+    #    training_data = np.array(X_train),
+    #    feature_names = X_train.columns,
+    #    class_names=['Repair', 'No Repair'],
+    #    mode='regression'
+    #)
 
-    # Explaining the instances using LIME
-    instance_exp = xgb_exp_lime.explain_instance(
-        data_row = X_train.values[4],
-        predict_fn = model.predict
-    )
+    ## Explaining the instances using LIME
+    #instance_exp = xgb_exp_lime.explain_instance(
+    #    data_row = X_train.values[4],
+    #    predict_fn = model.predict
+    #)
 
-    fig = instance_exp.as_pyplot_figure()
-    fig.savefig('xgb_lime_report.jpg')
+    #fig = instance_exp.as_pyplot_figure()
+    #fig.savefig('xgb_lime_report.jpg')
 
-    #xgb_boost_lime.show_in_notebook(show_table=True)
-    # RF
-    #print("Shape of the RF values:", xgb_sv[0])
-    #print("Shape of the XGB Shap values:", xgb_sv.shape)
-    summary_plot(xgb_sv, train_x, feature_names=cols)
+    ##xgb_boost_lime.show_in_notebook(show_table=True)
+    ## RF
+    ##print("Shape of the RF values:", xgb_sv[0])
+    ##print("Shape of the XGB Shap values:", xgb_sv.shape)
+    #summary_plot(xgb_sv, train_x, feature_names=cols)
 
     #Predictions
     prediction = model.predict(test_x)
@@ -174,6 +174,9 @@ def xgb_utility(train_x, trainy,
                               weights='quadratic')
     fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
     _auc = auc(fpr, tpr)
+
+    instance_exp = []
+    xgb_sv = []
     return _acc, _cm, _cr, _kappa, _auc, instance_exp, xgb_sv
 
 def main():

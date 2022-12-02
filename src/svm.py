@@ -72,14 +72,14 @@ def support_vector_utility(train_x, trainy,
                               probability=True))
     model.fit(train_x, trainy)
     features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, train_x, features)
+    #PartialDependenceDisplay.from_estimator(model, train_x, features)
     print("PartialDependenceDisplay Working OK")
 
 
     prediction = model.predict(test_x)
     prediction_prob = model.predict_proba(test_x)
-    data_sample = shap.sample(test_x, 20)
-    svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
+    #data_sample = shap.sample(test_x, 20)
+    #svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
 
     #print(svm_exp.shap_values(test_x))
 
@@ -87,32 +87,32 @@ def support_vector_utility(train_x, trainy,
     #print(svm_exp)
     #svm_ev = np.array(svm_exp.expected_value)
 
-    svm_sv = svm_exp.shap_values(train_x)
-    #svm_ev = svm_exp.expected_value
+    #svm_sv = svm_exp.shap_values(train_x)
+    ##svm_ev = svm_exp.expected_value
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, X_train, features)
-    print("PartialDependenceDisplay Working OK")
+    ## Partial dependency
+    #features = [0, 1]
+    #PartialDependenceDisplay.from_estimator(model, X_train, features)
+    #print("PartialDependenceDisplay Working OK")
 
-    # LIME:
-    svm_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='classification'
-    )
+    ## LIME:
+    #svm_exp_lime = lime_tabular.LimeTabularExplainer(
+    #    training_data = np.array(X_train),
+    #    feature_names = X_train.columns,
+    #    class_names=['Repair', 'No Repair'],
+    #    mode='classification'
+    #)
 
-    ## Explaining the instances using LIME
-    instance_exp = svm_exp_lime.explain_instance(
-        data_row = X_train.values[4],
-        predict_fn = model.predict_proba
-    )
+    ### Explaining the instances using LIME
+    #instance_exp = svm_exp_lime.explain_instance(
+    #    data_row = X_train.values[4],
+    #    predict_fn = model.predict_proba
+    #)
 
-    fig = instance_exp.as_pyplot_figure()
-    fig.savefig('svm_lime_report.jpg')
+    #fig = instance_exp.as_pyplot_figure()
+    #fig.savefig('svm_lime_report.jpg')
 
-    summary_plot(svm_sv, train_x, feature_names=cols)
+    #summary_plot(svm_sv, train_x, feature_names=cols)
 
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
@@ -123,6 +123,8 @@ def support_vector_utility(train_x, trainy,
 #    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
 #    _auc = auc(fpr, tpr)
 
+    instance_exp = []
+    svm_sv = []
     return acc, _cm, _cr, kappa, model, instance_exp, svm_sv
 
 def main():

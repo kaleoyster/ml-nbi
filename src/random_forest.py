@@ -66,46 +66,46 @@ def random_forest_utility(train_x, trainy,
                                    random_state=0)
     model.fit(X_train, trainy)
     #model.fit(train_x, trainy)
-    p_imp = permutation_importance(model,
-                                   test_x,
-                                   testy,
-                                   n_repeats=10,
-                                random_state=0)
+   # p_imp = permutation_importance(model,
+   #                                test_x,
+   #                                testy,
+   #                                n_repeats=10,
+   #                             random_state=0)
 
-    p_imp_mean = p_imp.importances_mean
-    p_imp_std = p_imp.importances_std
+   # p_imp_mean = p_imp.importances_mean
+   # p_imp_std = p_imp.importances_std
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, train_x, features)
-    print("PartialDependenceDisplay Working OK")
+   # # Partial dependency
+   # features = [0, 1]
+   # PartialDependenceDisplay.from_estimator(model, train_x, features)
+   # print("PartialDependenceDisplay Working OK")
 
-    ## Lime explainer
-    rf_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='classification'
-    )
+   # ## Lime explainer
+   # rf_exp_lime = lime_tabular.LimeTabularExplainer(
+   #     training_data = np.array(X_train),
+   #     feature_names = X_train.columns,
+   #     class_names=['Repair', 'No Repair'],
+   #     mode='classification'
+   # )
 
-    ## Explaining the instances using LIME
-    instance_exp = rf_exp_lime.explain_instance(
-        data_row = X_train.iloc[4],
-        predict_fn = model.predict_proba
-    )
+   # ## Explaining the instances using LIME
+   # instance_exp = rf_exp_lime.explain_instance(
+   #     data_row = X_train.iloc[4],
+   #     predict_fn = model.predict_proba
+   # )
 
-    fig = instance_exp.as_pyplot_figure()
-    fig.savefig('lime_report.jpg')
+   # fig = instance_exp.as_pyplot_figure()
+   # fig.savefig('lime_report.jpg')
     #print(instance_exp)
 
     # rf_exp_lime.show_in_notebook(show_table=True)
 
-    # Tree explainer -> The shap values are presented in the test_x
-    rf_exp = TreeExplainer(model)
-    rf_sv = np.array(rf_exp.shap_values(test_x))
-    rf_ev = np.array(rf_exp.expected_value)
-    #summary_plot(rf_sv[0], test_x, feature_names=cols)
-    summary_plot(rf_sv, train_x, feature_names=cols)
+   # Tree explainer -> The shap values are presented in the test_x
+   # rf_exp = TreeExplainer(model)
+   # rf_sv = np.array(rf_exp.shap_values(test_x))
+   # rf_ev = np.array(rf_exp.expected_value)
+   # #summary_plot(rf_sv[0], test_x, feature_names=cols)
+   # summary_plot(rf_sv, train_x, feature_names=cols)
 
     # Predictions
     prediction = model.predict(test_x)
@@ -117,6 +117,8 @@ def random_forest_utility(train_x, trainy,
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
+    instance_exp = []
+    rf_sv = []
     return acc, _cm, _cr, kappa, model, _fi, instance_exp, rf_sv
 
 def main():

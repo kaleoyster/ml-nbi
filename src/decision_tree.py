@@ -69,62 +69,63 @@ def tree_utility(train_x, trainy,
     X_train = pd.DataFrame(train_x)
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     cv = KFold(n_splits=4, shuffle=False)
-    lofo_importance = LOFOImportance(X_train,
-                                     cv=cv,
-                                     scoring='roc_auc',
-                                     model=model)
-    #print(lofo_importance.get_importance)
-    # Get the mean and standard deviation of the importances in pandas format
-    # Fix this error
-    #importance_df = lofo_importance.get_importance()
 
-    # plot the means and standard deviations of the importances
-    #plot_importance(importance_df, figsize=(12, 20))
+    #lofo_importance = LOFOImportance(X_train,
+    #                                 cv=cv,
+    #                                 scoring='roc_auc',
+    #                                 model=model)
+    ##print(lofo_importance.get_importance)
+    ## Get the mean and standard deviation of the importances in pandas format
+    ## Fix this error
+    ##importance_df = lofo_importance.get_importance()
+
+    ## plot the means and standard deviations of the importances
+    ##plot_importance(importance_df, figsize=(12, 20))
 
     model.fit(X_train, trainy)
-    #model.fit(train_x, trainy)
+    ##model.fit(train_x, trainy)
 
-    # PErmutation mean of the feature importance
-    p_imp = permutation_importance(model,
-                                   test_x,
-                                   testy,
-                                   n_repeats=10,
-                                random_state=0)
+    ## Permutation mean of the feature importance
+    #p_imp = permutation_importance(model,
+    #                               test_x,
+    #                               testy,
+    #                               n_repeats=10,
+    #                            random_state=0)
 
-    p_imp_mean = p_imp.importances_mean
-    p_imp_std = p_imp.importances_std
+    #p_imp_mean = p_imp.importances_mean
+    #p_imp_std = p_imp.importances_std
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, X_train, features)
-    print("PartialDependenceDisplay Working OK")
+    ## Partial dependency
+    #features = [0, 1]
+    #PartialDependenceDisplay.from_estimator(model, X_train, features)
+    #print("PartialDependenceDisplay Working OK")
 
-    dt_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='classification'
-    )
+    #dt_exp_lime = lime_tabular.LimeTabularExplainer(
+    #    training_data = np.array(X_train),
+    #    feature_names = X_train.columns,
+    #    class_names=['Repair', 'No Repair'],
+    #    mode='classification'
+    #)
 
-    ## Explaining the instances using LIME
-    instance_exp = dt_exp_lime.explain_instance(
-        data_row = X_train.iloc[4],
-        predict_fn = model.predict_proba
-    )
+    ### Explaining the instances using LIME
+    #instance_exp = dt_exp_lime.explain_instance(
+    #    data_row = X_train.iloc[4],
+    #    predict_fn = model.predict_proba
+    #)
 
-    fig = instance_exp.as_pyplot_figure()
-    instance_exp.save_to_file('dt_lime_report.html')
+    #fig = instance_exp.as_pyplot_figure()
+    #instance_exp.save_to_file('dt_lime_report.html')
 
-    dt_exp = TreeExplainer(model)
-    dt_sv = np.array(dt_exp.shap_values(train_x))
-    dt_ev = np.array(dt_exp.expected_value)
+    #dt_exp = TreeExplainer(model)
+    #dt_sv = np.array(dt_exp.shap_values(train_x))
+    #dt_ev = np.array(dt_exp.expected_value)
 
-    dt_sv =  dt_exp.shap_values(train_x)
-    dt_ev =  dt_exp.expected_value
+    #dt_sv =  dt_exp.shap_values(train_x)
+    #dt_ev =  dt_exp.expected_value
 
-    #print("Shape of the RF values:", dt_sv[0])
-    #print("Shape of the Light boost Shap Values")
-    summary_plot(dt_sv, train_x, feature_names=cols)
+    ##print("Shape of the RF values:", dt_sv[0])
+    ##print("Shape of the Light boost Shap Values")
+    #summary_plot(dt_sv, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)
     prediction = model.predict(test_x)
@@ -136,6 +137,8 @@ def tree_utility(train_x, trainy,
                               weights='quadratic')
     #fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
     #_auc = metrics.auc(fpr, tpr)
+    instance_exp = []
+    dt_sv = []
 
     return acc, _cm, _cr, _kappa, model, _fi, instance_exp, dt_sv
 
@@ -317,7 +320,7 @@ def main():
         performance['feature_importance'].append(fi)
         performance['shap_values'].append(dt_sv)
         performance['lime_val'].append(dt_lime)
-#
+
     print('Performance metrics:')
     print(performance['accuracy'])
     print(np.mean(performance['accuracy']))

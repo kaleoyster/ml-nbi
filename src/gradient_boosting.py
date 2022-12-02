@@ -68,46 +68,45 @@ def gradient_boosting_utility(train_x, trainy,
     model.fit(X_train, trainy)
 
     # Permutation mean of the feature importance
-    p_imp = permutation_importance(model,
-                                   test_x,
-                                   testy,
-                                   n_repeats=10,
-                                random_state=0)
-    p_imp_mean = p_imp.importances_mean
-    p_imp_std = p_imp.importances_std
+    #p_imp = permutation_importance(model,
+    #                               test_x,
+    #                               testy,
+    #                               n_repeats=10,
+    #                            random_state=0)
+    #p_imp_mean = p_imp.importances_mean
+    #p_imp_std = p_imp.importances_std
 
-    # Partial dependency
-    features = [0, 1]
-    PartialDependenceDisplay.from_estimator(model, X_train, features)
-    print("PartialDependenceDisplay Working OK")
+    ## Partial dependency
+    #features = [0, 1]
+    #PartialDependenceDisplay.from_estimator(model, X_train, features)
+    #print("PartialDependenceDisplay Working OK")
 
-    # LIME
-    grad_exp_lime = lime_tabular.LimeTabularExplainer(
-        training_data = np.array(X_train),
-        feature_names = X_train.columns,
-        class_names=['Repair', 'No Repair'],
-        mode='classification'
-    )
+    ## LIME
+    #grad_exp_lime = lime_tabular.LimeTabularExplainer(
+    #    training_data = np.array(X_train),
+    #    feature_names = X_train.columns,
+    #    class_names=['Repair', 'No Repair'],
+    #    mode='classification'
+    #)
 
-    # Explaining the LIME for specific instance
-    instance_exp = grad_exp_lime.explain_instance(
-        data_row = X_train.iloc[4],
-        predict_fn = model.predict_proba
-    )
+    ## Explaining the LIME for specific instance
+    #instance_exp = grad_exp_lime.explain_instance(
+    #    data_row = X_train.iloc[4],
+    #    predict_fn = model.predict_proba
+    #)
 
-    fig = instance_exp.as_pyplot_figure()
-    fig.savefig('grad_lime_report.jpg')
+    #fig = instance_exp.as_pyplot_figure()
+    #fig.savefig('grad_lime_report.jpg')
 
-    #model.fit(train_x, trainy)
-    g_exp = TreeExplainer(model)
-    g_sv = np.array(g_exp.shap_values(train_x))
-    g_ev = np.array(g_exp.expected_value)
+    ##model.fit(train_x, trainy)
+    #g_exp = TreeExplainer(model)
+    #g_sv = np.array(g_exp.shap_values(train_x))
+    #g_ev = np.array(g_exp.expected_value)
 
-    g_sv = g_exp.shap_values(train_x)
-    g_ev = g_exp.expected_value
+    #g_sv = g_exp.shap_values(train_x)
+    #g_ev = g_exp.expected_value
 
-    summary_plot(g_sv, train_x, feature_names=cols)
-
+    #summary_plot(g_sv, train_x, feature_names=cols)
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
@@ -115,6 +114,8 @@ def gradient_boosting_utility(train_x, trainy,
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
+    instance_exp = []
+    g_sv = []
     return acc, _cm, _cr, kappa, model, _fi, instance_exp, g_sv
 
 def main():
@@ -128,7 +129,8 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX,
+                                                                                       trainy,
                                                  testX, testy, cols, max_depth=7)
 
         performance['accuracy'].append(gacc)

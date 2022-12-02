@@ -131,11 +131,11 @@ def main():
         performance['shap_values'].append(lr_sv)
         performance['lime_val'].append(lr_lime)
 
-    print('Performance metrics:')
-    print(performance['accuracy'])
-    print(np.mean(performance['accuracy']))
-    print(performance['kappa'])
-    print(np.mean(performance['kappa']))
+    #print('Performance metrics:')
+    #print(performance['accuracy'])
+    #print(np.mean(performance['accuracy']))
+    #print(performance['kappa'])
+    #print(np.mean(performance['kappa']))
 
     return performance
 

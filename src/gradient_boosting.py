@@ -36,6 +36,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
 
 # Preprocessing
 from preprocessing import *
@@ -107,16 +109,28 @@ def gradient_boosting_utility(train_x, trainy,
     #g_ev = g_exp.expected_value
 
     #summary_plot(g_sv, train_x, feature_names=cols)
+
+    prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
+
+    class_label = {'negative':0,
+                   'positive':1}
+    testy_num = [class_label[i] for i in testy]
+    fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+    print("printing fpr and tpr", fpr, tpr)
+    _auc = auc(fpr, tpr)
+    print("Printing area under curve")
+    print(_auc)
+
     _fi = dict(zip(cols, model.feature_importances_))
-    kappa = cohen_kappa_score(prediction, testy,
+    _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
     instance_exp = []
     g_sv = []
-    return acc, _cm, _cr, kappa, model, _fi, instance_exp, g_sv
+    return acc, _cm, _cr, _kappa, _auc, model, _fi, instance_exp, g_sv
 
 def main():
     X, y, cols = preprocess()
@@ -129,12 +143,13 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX,
+        gacc, gcm, gcr, gkappa, gauc, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX,
                                                                                        trainy,
                                                  testX, testy, cols, max_depth=7)
 
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
+        performance['auc'].append(gauc)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
         performance['feature_importance'].append(fi)

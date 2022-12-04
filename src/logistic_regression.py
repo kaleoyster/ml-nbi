@@ -99,7 +99,10 @@ def logistic_regression_utility(train_x, trainy,
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
-    _cr = classification_report(testy, prediction, zero_division=0)
+    _cr = classification_report(testy,
+                                prediction,
+                                zero_division=0)
+
     class_label = {'negative':0,
                    'positive':1}
     testy_num = [class_label[i] for i in testy]
@@ -115,7 +118,7 @@ def logistic_regression_utility(train_x, trainy,
     int_shap = []
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, _kappa, model, instance_exp, int_shap
+    return acc, _cm, _cr, _kappa, _auc, model, instance_exp, int_shap
 
 def main():
     X, y, cols = preprocess()
@@ -128,10 +131,11 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gauc, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
                                                  testX, testy, cols)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
+        performance['auc'].append(gauc)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
         performance['shap_values'].append(lr_sv)

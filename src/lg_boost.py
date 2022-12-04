@@ -122,19 +122,27 @@ def light_boost_utility(train_x, trainy,
 
     #shap.plots.waterfall(lg_sv[0])
     #testing_accuracy = modelX_test.score(test_x, testy)
+    prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
     _acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
+    fpr, tpr, threshold = roc_curve(testy, prediction_prob)
+    print("printing fpr and tpr", fpr, tpr)
+    _auc = auc(fpr, tpr)
+    print("Printing area under curve")
+    print(_auc)
+
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
 
     #fpr, tpr, threshold = metrics.roc_curve(testy, prediction, pos_label=2)
     #_auc = metrics.auc(fpr, tpr)
+    #print("printing auc", _auc)
     instance_exp = []
     lg_sv = []
-    return _acc, _cm, _cr, kappa, instance_exp, lg_sv
+    return _acc, _cm, _cr, kappa, _auc, instance_exp, lg_sv
 
 def main():
     X, y, cols = preprocess()
@@ -160,10 +168,11 @@ def main():
         # structure numbers
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
-        acc, cm, cr, kappa, lg_lime, lg_sv = light_boost_utility(trainX, trainy, testX, testy, cols)
+        acc, cm, cr, kappa, auc, lg_lime, lg_sv = light_boost_utility(trainX, trainy, testX, testy, cols)
 
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
+        performance['auc'].append(auc)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['shap_values'].append(lg_sv)

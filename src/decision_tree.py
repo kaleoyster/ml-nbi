@@ -127,11 +127,19 @@ def tree_utility(train_x, trainy,
     ##print("Shape of the Light boost Shap Values")
     #summary_plot(dt_sv, train_x, feature_names=cols)
 
-    prediction_prob = model.predict_proba(test_x)
+    prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
+    class_label = {
+                    'negative':0,
+                    'positive':1
+                    }
+    testy_num = [class_label[i] for i in testy]
+    fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+    _auc = auc(fpr, tpr)
+    print("printing auc", _auc)
     _fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
@@ -140,7 +148,7 @@ def tree_utility(train_x, trainy,
     instance_exp = []
     dt_sv = []
 
-    return acc, _cm, _cr, _kappa, model, _fi, instance_exp, dt_sv
+    return acc, _cm, _cr, _kappa, _auc, model, _fi, instance_exp, dt_sv
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
@@ -309,12 +317,13 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # Entropy
-        acc, cm, cr, kappa, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
+        acc, cm, cr, kappa, auc, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=30)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
+        performance['auc'].append(auc)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['feature_importance'].append(fi)

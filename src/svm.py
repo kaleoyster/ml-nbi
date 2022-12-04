@@ -75,9 +75,6 @@ def support_vector_utility(train_x, trainy,
     #PartialDependenceDisplay.from_estimator(model, train_x, features)
     print("PartialDependenceDisplay Working OK")
 
-
-    prediction = model.predict(test_x)
-    prediction_prob = model.predict_proba(test_x)
     #data_sample = shap.sample(test_x, 20)
     #svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
 
@@ -114,18 +111,29 @@ def support_vector_utility(train_x, trainy,
 
     #summary_plot(svm_sv, train_x, feature_names=cols)
 
+    prediction = model.predict(test_x)
+    prediction_prob = model.predict_proba(test_x)[::, 1]
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
+
+    class_label = {'negative':0,
+                   'positive':1 }
+
+    testy_num = [class_label[i] for i in testy]
+    fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+    _auc = auc(fpr, tpr)
+    print("Printing area under curve")
+    print(_auc)
+
     #_fi = dict(zip(cols, model.feature_importances_))
-    kappa = cohen_kappa_score(prediction, testy,
+    _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-#    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
 #    _auc = auc(fpr, tpr)
 
     instance_exp = []
     svm_sv = []
-    return acc, _cm, _cr, kappa, model, instance_exp, svm_sv
+    return acc, _cm, _cr, _kappa, _auc, model, instance_exp, svm_sv
 
 def main():
     X, y, cols = preprocess()
@@ -138,10 +146,11 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gmodel, svm_lime, svm_sv = support_vector_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gauc, gmodel, svm_lime, svm_sv = support_vector_utility(trainX, trainy,
                                                  testX, testy, cols)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
+        performance['auc'].append(gauc)
         performance['confusion_matrix'].append(gcr)
         performance['classification_report'].append(gcr)
         performance['shap_values'].append(svm_sv)

@@ -16,6 +16,7 @@ import pydotplus
 from matplotlib import pyplot
 
 # XGBoost
+import xgboost as xgb
 from xgboost.sklearn import XGBRegressor
 from xgboost import plot_importance
 from sklearn.model_selection import KFold
@@ -88,7 +89,8 @@ def xgb_utility(train_x, trainy,
     X_train = pd.DataFrame(train_x, columns=cols)
     y_train = pd.DataFrame(trainy)
 
-    model = XGBRegressor(objective='reg:squarederror')
+    #model = XGBRegressor(objective='reg:squarederror')
+    model =  xgb.XGBClassifier()
 
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
     # dtrain = model.DMatrix(train_x, label=train_y)
@@ -160,27 +162,35 @@ def xgb_utility(train_x, trainy,
 
     #Predictions
     prediction = model.predict(test_x)
-    b_prediction = convert_prediction_to_binary(prediction)
+    prediction_prob = model.predict_proba(test_x)[::, 1]
+    #b_prediction = convert_prediction_to_binary(prediction)
 
     #_mse = mean_squared_error(prediction, testy)
-    _acc = accuracy_score(testy, b_prediction)
-    _cm = confusion_matrix(testy, b_prediction)
+    _acc = accuracy_score(testy, prediction)
+    _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy,
-                                b_prediction,
+                                prediction,
                                 zero_division=0)
 
-    #_fi = dict(zip(cols, model.feature_importances_))
-    _kappa = cohen_kappa_score(b_prediction, testy,
-                              weights='quadratic')
-    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
+    fpr, tpr, threshold = roc_curve(testy, prediction_prob)
+    print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
+    print("Printing area under curve")
+    print(_auc)
+
+    #_fi = dict(zip(cols, model.feature_importances_))
+    _kappa = cohen_kappa_score(prediction, testy,
+                              weights='quadratic')
+#    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
+#    _auc = auc(fpr, tpr)
+    print("printing the auc", _auc)
 
     instance_exp = []
     xgb_sv = []
     return _acc, _cm, _cr, _kappa, _auc, instance_exp, xgb_sv
 
 def main():
-    X, y, cols = preprocess()
+    X , y, cols = preprocess()
     # Convert y into 0, 1
     # If positive = 1
     # If negative = 0
@@ -204,6 +214,7 @@ def main():
         acc, cm, cr, kappa, auc, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
+        performance['auc'].append(auc)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['shap_values'].append(xgb_sv)

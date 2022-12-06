@@ -393,8 +393,8 @@ def data_preprocessing():
 
     #---- Selection of the structure number and groundtruth --------#
     structSet = [(structNo, groundtruth) for structNo, groundtruth in zip(newDf['structureNumber'], newDf['label'])]
-    print("\nPrinting the dataframe")
-    print(structSet)
+    #print("\nPrinting the dataframe")
+    #print(structSet)
     #---- Selection of the structure number and groundtruth --------#
 
     ## Remove null values from groundtruth

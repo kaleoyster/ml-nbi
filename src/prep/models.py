@@ -57,6 +57,14 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 
+# Metrics and stats
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+
 # test drivers
 def leNet(in_shape):
     """
@@ -237,7 +245,7 @@ def evaluate_model(dataX, dataY, n_folds=5):
         # fit model
         history = model.fit(trainX,
                             trainY,
-                            epochs=100,
+                            epochs=10,
                             batch_size=32,
                             validation_data=(testX, testY), verbose=2)
         # evaluate model

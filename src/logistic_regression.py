@@ -119,7 +119,7 @@ def logistic_regression_utility(train_x, trainy,
     int_shap = []
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, _kappa, _auc, model, instance_exp, int_shap
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, int_shap
 
 def main():
     X, y, cols = preprocess()
@@ -132,22 +132,17 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gauc, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
+        gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
                                                  testX, testy, cols)
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['auc'].append(gauc)
+        performance['fpr'].append(gfpr)
+        performance['tpr'].append(gtpr)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
         performance['shap_values'].append(lr_sv)
         performance['lime_val'].append(lr_lime)
-
-    #print('Performance metrics:')
-    #print(performance['accuracy'])
-    #print(np.mean(performance['accuracy']))
-    #print(performance['kappa'])
-    #print(np.mean(performance['kappa']))
-
     return performance
 
 if __name__ =='__main__':

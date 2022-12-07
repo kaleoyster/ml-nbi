@@ -142,7 +142,7 @@ def light_boost_utility(train_x, trainy,
     #print("printing auc", _auc)
     instance_exp = []
     lg_sv = []
-    return _acc, _cm, _cr, kappa, _auc, instance_exp, lg_sv
+    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, instance_exp, lg_sv
 
 def main():
     X, y, cols = preprocess()
@@ -168,11 +168,13 @@ def main():
         # structure numbers
         #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
         #                                          testX, testy, cols)
-        acc, cm, cr, kappa, auc, lg_lime, lg_sv = light_boost_utility(trainX, trainy, testX, testy, cols)
+        acc, cm, cr, kappa, auc, fpr, tpr, lg_lime, lg_sv = light_boost_utility(trainX, trainy, testX, testy, cols)
 
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
         performance['auc'].append(auc)
+        performance['fpr'].append(fpr)
+        performance['tpr'].append(tpr)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['shap_values'].append(lg_sv)

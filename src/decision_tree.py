@@ -148,7 +148,7 @@ def tree_utility(train_x, trainy,
     instance_exp = []
     dt_sv = []
 
-    return acc, _cm, _cr, _kappa, _auc, model, _fi, instance_exp, dt_sv
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, dt_sv
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
@@ -317,13 +317,15 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # Entropy
-        acc, cm, cr, kappa, auc, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
+        acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
                                                  testX, testy, cols,
                                                  criteria='entropy',
                                                  max_depth=30)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
         performance['auc'].append(auc)
+        performance['fpr'].append(fpr)
+        performance['tpr'].append(tpr)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['feature_importance'].append(fi)

@@ -173,7 +173,6 @@ def xgb_utility(train_x, trainy,
                                 zero_division=0)
 
     fpr, tpr, threshold = roc_curve(testy, prediction_prob)
-    print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
     print("Printing area under curve")
     print(_auc)
@@ -187,7 +186,7 @@ def xgb_utility(train_x, trainy,
 
     instance_exp = []
     xgb_sv = []
-    return _acc, _cm, _cr, _kappa, _auc, instance_exp, xgb_sv
+    return _acc, _cm, _cr, _kappa, _auc, fpr, tpr, instance_exp, xgb_sv
 
 def main():
     X , y, cols = preprocess()
@@ -211,10 +210,12 @@ def main():
         trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                            X[foldTestX], y[foldTestX]
         # structure numbers
-        acc, cm, cr, kappa, auc, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
+        acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
         performance['accuracy'].append(acc)
         performance['kappa'].append(kappa)
         performance['auc'].append(auc)
+        performance['fpr'].append(fpr)
+        performance['tpr'].append(tpr)
         performance['confusion_matrix'].append(cm)
         performance['classification_report'].append(cr)
         performance['shap_values'].append(xgb_sv)

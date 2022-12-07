@@ -120,7 +120,6 @@ def gradient_boosting_utility(train_x, trainy,
                    'positive':1}
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
-    print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
     print("Printing area under curve")
     print(_auc)
@@ -130,7 +129,7 @@ def gradient_boosting_utility(train_x, trainy,
                               weights='quadratic')
     instance_exp = []
     g_sv = []
-    return acc, _cm, _cr, _kappa, _auc, model, _fi, instance_exp, g_sv
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, g_sv
 
 def main():
     X, y, cols = preprocess()
@@ -143,13 +142,15 @@ def main():
                                           X[foldTestX], y[foldTestX]
 
         # structure numbers
-        gacc, gcm, gcr, gkappa, gauc, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX,
+        gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX,
                                                                                        trainy,
                                                  testX, testy, cols, max_depth=7)
 
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['auc'].append(gauc)
+        performance['fpr'].append(gfpr)
+        performance['tpr'].append(gtpr)
         performance['confusion_matrix'].append(gcm)
         performance['classification_report'].append(gcr)
         performance['feature_importance'].append(fi)

@@ -51,7 +51,7 @@ def main():
                       metrics=['accuracy'])
 
         # Model fit
-        model.fit(X_train, y_train, batch_size=50, epochs=5)
+        model.fit(X_train, y_train, batch_size=50, epochs=200)
 
         # Evaluate model
         loss, acc =  model.evaluate(X_test, y_test, verbose=0)
@@ -91,3 +91,4 @@ def main():
         performance['tpr'].append(tpr)
 
         return performance
+main()

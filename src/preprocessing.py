@@ -536,9 +536,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
                             48
         ]
     #sampling = SMOTE()
-    #sampling = SMOTEN(random_state=0)
-    sampling = SMOTENC(random_state=42,
-                      categorical_features=categorical_col)
+    sampling = SMOTEN(random_state=0)
+    #sampling = SMOTENC(random_state=42,
+    #                  categorical_features=categorical_col)
     #sampling = RandomUnderSampler(sampling_strategy='auto')
     X, y = sampling.fit_resample(X, y)
 

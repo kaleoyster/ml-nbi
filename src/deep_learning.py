@@ -86,7 +86,7 @@ def main():
 
         performance['accuracy'].append(acc)
         performance['kappa'].append(_kappa)
-        performance['auc'].append(auc)
+        performance['auc'].append(_auc)
         performance['fpr'].append(fpr)
         performance['tpr'].append(tpr)
 

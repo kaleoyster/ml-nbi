@@ -103,11 +103,21 @@ def logistic_regression_utility(train_x, trainy,
                                 prediction,
                                 zero_division=0)
 
-    class_label = {'negative':0,
-                   'positive':1}
+    class_label = {
+                   'negative':0,
+                   'positive':1
+                  }
+
     testy_num = [class_label[i] for i in testy]
     print("Shapes: ", np.shape(testy_num), np.shape(prediction_prob))
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+    print(testy_num[:10])
+    print(prediction_prob[:10])
+    print("Checking dimensions")
+    print(np.shape(testy_num), np.shape(prediction_prob))
+    print(np.shape(fpr), np.shape(tpr))
+    print("printing fpr and tpr")
+    print(fpr, tpr)
     #print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
     print("Printing area under curve")

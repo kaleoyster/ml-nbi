@@ -46,7 +46,7 @@ from preprocessing import *
 
 def tree_utility(train_x, trainy,
                  test_x, testy, cols,
-                 criteria='gini', max_depth=7):
+                 criteria='entropy', max_depth=15):
     """
     Description:
         Performs the modeling and returns performance metrics
@@ -68,7 +68,7 @@ def tree_utility(train_x, trainy,
     #X_train = pd.DataFrame(train_x, columns=cols)
     X_train = pd.DataFrame(train_x)
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
-    cv = KFold(n_splits=4, shuffle=False)
+    cv = KFold(n_splits=5, shuffle=False)
 
     #lofo_importance = LOFOImportance(X_train,
     #                                 cv=cv,
@@ -138,6 +138,13 @@ def tree_utility(train_x, trainy,
                     }
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+    #print(testy_num[:100])
+    #print(prediction_prob[:100])
+    print("Checking dimensions")
+    print(np.shape(testy_num), np.shape(prediction_prob))
+    print(np.shape(fpr), np.shape(tpr))
+    print("printing fpr and tpr")
+    print(fpr, tpr)
     _auc = auc(fpr, tpr)
     print("printing auc", _auc)
     _fi = dict(zip(cols, model.feature_importances_))

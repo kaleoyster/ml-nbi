@@ -102,7 +102,6 @@ def logistic_regression_utility(train_x, trainy,
     _cr = classification_report(testy,
                                 prediction,
                                 zero_division=0)
-
     class_label = {
                    'negative':0,
                    'positive':1

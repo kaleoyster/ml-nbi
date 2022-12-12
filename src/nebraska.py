@@ -13,7 +13,7 @@ def main():
     print(scores)
 
     # Learning curves
-    #summarize_diagnostics(histories)
+    # summarize_diagnostics(histories)
 
     # Summarize estimated performance
     #summarize_performance(scores)

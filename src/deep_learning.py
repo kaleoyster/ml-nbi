@@ -13,10 +13,14 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import cohen_kappa_score
 
-from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from prep.prep_nbi import *
 from preprocessing import *
 
+import shap
+"""
+   Follow: https://towardsdatascience.com/deep-learning-model-interpretation-using-shap-a21786e91d16
+"""
 def main():
 
     # Preprocess dataset
@@ -51,7 +55,14 @@ def main():
                       metrics=['accuracy'])
 
         # Model fit
-        model.fit(X_train, y_train, batch_size=50, epochs=200)
+        model.fit(X_train, y_train, batch_size=50, epochs=5)
+
+        # Implement this as a separate functions
+        # Compute SHAP Values
+        #X_train = pd.DataFrame(X_train, columns=cols)
+        #explainer = shap.DeepExplainer(model, X_train)
+        #shap_values = explainer.shap_values(X_test)
+        #shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
 
         # Evaluate model
         loss, acc =  model.evaluate(X_test, y_test, verbose=0)

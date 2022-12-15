@@ -49,6 +49,13 @@ def main():
             tf.keras.layers.Dense(2, activation='softmax'), # 2 / 3
         ])
 
+        input = tf.keras.Input(shape=(8, 12, 1))
+        x = tf.keras.layers.Dense(10, activation='relu')(input)
+        x = tf.keras.layers.Dense(10, activation='relu')(x)
+        output = tf.keras.layers.Dense(2, activation='softmax')(x)
+
+        model = tf.keras.Model(inputs=input, outputs=output, name='Deck Maintenance Model')
+
         # Compile
         model.compile(optimizer='rmsprop',
                       loss='categorical_crossentropy',
@@ -59,14 +66,14 @@ def main():
 
         # Implement this as a separate functions
         # Compute SHAP Values
-        #X_train = pd.DataFrame(X_train, columns=cols)
-        #explainer = shap.DeepExplainer(model, X_train)
-        #shap_values = explainer.shap_values(X_test)
-        #shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
+        X_train = pd.DataFrame(X_train, columns=cols)
+        explainer = shap.DeepExplainer(model, X_train)
+        shap_values = explainer.shap_values(X_test)
+        shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
 
         # Evaluate model
         loss, acc =  model.evaluate(X_test, y_test, verbose=0)
-        print("Test loss: ", loss)
+        rint("Test loss: ", loss)
         print("Test accuracy:", acc)
 
         # Predict test model

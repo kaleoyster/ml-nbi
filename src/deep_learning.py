@@ -76,11 +76,12 @@ def main():
                       metrics=['accuracy'])
 
         # Model fit
-        model.fit(X_train, y_train, batch_size=64, epochs=200)
+        model.fit(X_train, y_train, batch_size=64, epochs=5)
 
         # Implement this as a separate functions
         # Compute SHAP Values
         explainer = shap.DeepExplainer(model, X_train)
+        #explainer = shap.KernelExplainer(model, X_train[:5])
         shap_values = explainer.shap_values(X_test)
         shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
 

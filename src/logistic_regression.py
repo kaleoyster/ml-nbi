@@ -131,9 +131,9 @@ def logistic_regression_utility(train_x, trainy,
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, int_shap
 
 def main():
-
+    # States
     states = [
-              'wisconsin_depp.csv',
+              'wisconsin_deep.csv',
               'colorado_deep.csv',
               'illinois_deep.csv',
               'indiana_deep.csv',

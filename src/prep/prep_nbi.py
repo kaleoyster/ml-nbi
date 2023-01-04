@@ -248,7 +248,7 @@ def categorize_groundtruth(scores):
           cat.append('1')
     return cat
 
-def data_preprocessing():
+def data_preprocessing(state):
     """
     Description:
         Pipeline for create images of

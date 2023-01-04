@@ -131,27 +131,62 @@ def logistic_regression_utility(train_x, trainy,
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, int_shap
 
 def main():
-    X, y, cols = preprocess()
-    kfold = KFold(5, shuffle=True, random_state=1)
 
-    # X is the dataset
-    performance = defaultdict(list)
-    for foldTrainX, foldTestX in kfold.split(X):
-        trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
-                                          X[foldTestX], y[foldTestX]
+    states = [
+              'wisconsin_depp.csv',
+              'colorado_deep.csv',
+              'illinois_deep.csv',
+              'indiana_deep.csv',
+              'iowa_deep.csv',
+              'minnesota_deep.csv',
+              'missouri_deep.csv',
+              'ohio_deep.csv',
+              'nebraska_deep.csv',
+              'indiana_deep.csv',
+              'kansas_deep.csv',
+             ]
 
-        # structure numbers
-        gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
-                                                 testX, testy, cols)
-        performance['accuracy'].append(gacc)
-        performance['kappa'].append(gkappa)
-        performance['auc'].append(gauc)
-        performance['fpr'].append(gfpr)
-        performance['tpr'].append(gtpr)
-        performance['confusion_matrix'].append(gcm)
-        performance['classification_report'].append(gcr)
-        performance['shap_values'].append(lr_sv)
-        performance['lime_val'].append(lr_lime)
+    temp_dfs = list()
+    for state in states:
+        state_file = '../data/' + state
+        X, y, cols = preprocess(csv_file=state_file)
+        kfold = KFold(5, shuffle=True, random_state=1)
+
+        # X is the dataset
+        performance = defaultdict(list)
+        for foldTrainX, foldTestX in kfold.split(X):
+            trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
+                                              X[foldTestX], y[foldTestX]
+
+            # structure numbers
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
+                                                     testX, testy, cols)
+            state_name = state[:-9]
+            performance['state'].append(state_name)
+            performance['accuracy'].append(gacc)
+            performance['kappa'].append(gkappa)
+            performance['auc'].append(gauc)
+            performance['fpr'].append(gfpr)
+            performance['tpr'].append(gtpr)
+            performance['confusion_matrix'].append(gcm)
+            performance['classification_report'].append(gcr)
+            performance['shap_values'].append(lr_sv)
+            performance['lime_val'].append(lr_lime)
+
+            # Create a dataframe
+            temp_df = pd.DataFrame(performance, columns=['state',
+                                                     'accuracy',
+                                                     'kappa',
+                                                     'auc',
+                                                     'fpr',
+                                                     'tpr',
+                                                     'confusion_matrix',
+                                                     'shap_values',
+                                                     'lime_val',
+                                                    ])
+        temp_dfs.append(temp_df)
+    performance_df = pd.concat(temp_dfs)
+    print(performance_df)
     return performance
 
 if __name__ =='__main__':

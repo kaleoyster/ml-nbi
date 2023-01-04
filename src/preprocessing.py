@@ -175,7 +175,7 @@ def geo_coor_utility(longitude, latitude):
     """
     if latitude > 0 and longitude > 0:
         lat = str(latitude)
-
+        lat = lat.rjust(8, '0')
         lat_degree = Decimal(lat[:2])
         lat_min = Decimal(lat[2:4])
         lat_min = (lat_min/60)
@@ -184,6 +184,7 @@ def geo_coor_utility(longitude, latitude):
         lat_decimal = lat_degree + lat_min + lat_sec
 
         long = str(longitude)
+        long = long.rjust(9, '0')
         if len(long) <= 9:
             long  = long.zfill(9)
         long_degree = Decimal(long[:3])
@@ -344,6 +345,7 @@ def remove_duplicates(_df, column_name='structureNumbers'):
     return new_df
 
 def preprocess(csv_file = '../data/nebraska_deep.csv'):
+    # Read CSV
     df = read_csv(csv_file)
 
     # Remove null values:
@@ -536,9 +538,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
                             48
         ]
     #sampling = SMOTE()
-    sampling = SMOTEN(random_state=0)
-    #sampling = SMOTENC(random_state=42,
-    #                  categorical_features=categorical_col)
+    #sampling = SMOTEN(random_state=0)
+    sampling = SMOTENC(random_state=42,
+                      categorical_features=categorical_col)
     #sampling = RandomUnderSampler(sampling_strategy='auto')
     X, y = sampling.fit_resample(X, y)
 

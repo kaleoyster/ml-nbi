@@ -136,18 +136,35 @@ def support_vector_utility(train_x, trainy,
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, svm_sv
 
 def main():
-    X, y, cols = preprocess()
-    kfold = KFold(5, shuffle=True, random_state=1)
+    # States
+    states = [
+              'wisconsin_deep.csv',
+              'colorado_deep.csv',
+              'illinois_deep.csv',
+              'indiana_deep.csv',
+              'iowa_deep.csv',
+              'minnesota_deep.csv',
+              'missouri_deep.csv',
+              'ohio_deep.csv',
+              'nebraska_deep.csv',
+              'indiana_deep.csv',
+              'kansas_deep.csv',
+             ]
 
-    # X is the dataset
-    performance = defaultdict(list)
-    for foldTrainX, foldTestX in kfold.split(X):
-        trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
-                                          X[foldTestX], y[foldTestX]
+    temp_dfs = list()
+    for state in states:
+        state_file = '../data/' + state
+        X, y, cols = preprocess(csv_file=state_file)
+        kfold = KFold(5, shuffle=True, random_state=1)
 
-        # structure numbers
-        gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv = support_vector_utility(trainX, trainy,
-                                                 testX, testy, cols)
+        # X is the dataset
+        performance = defaultdict(list)
+        for foldTrainX, foldTestX in kfold.split(X):
+            trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
+                                              X[foldTestX], y[foldTestX]
+            # structure numbers
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv = support_vector_utility(trainX, trainy, testX, testy, cols)
+        state_name = state[:-9]
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
         performance['auc'].append(gauc)
@@ -158,7 +175,21 @@ def main():
         performance['shap_values'].append(svm_sv)
         performance['lime_val'].append(svm_lime)
 
-        return performance
+        # Create a dataframe
+        temp_df = pd.DataFrame(performance, columns=['state',
+                                                     'accuracy',
+                                                     'kappa',
+                                                     'auc',
+                                                     'fpr',
+                                                     'tpr',
+                                                     'confusion_matrix',
+                                                     'shap_values',
+                                                     'lime_val',
+                                                    ])
+        temp_dfs.append(temp_df)
+    performance_df = pd.concat(temp_dfs)
+    print(performance_df)
+    return performance
 
 if __name__ == '__main__':
     main()

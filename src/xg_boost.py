@@ -189,45 +189,72 @@ def xgb_utility(train_x, trainy,
     return _acc, _cm, _cr, _kappa, _auc, fpr, tpr, instance_exp, xgb_sv
 
 def main():
-    X , y, cols = preprocess()
-    # Convert y into 0, 1
-    # If positive = 1
-    # If negative = 0
-    new_y = []
-    for value in y:
-        if value == 'positive':
-            new_val = 1
-        else:
-            new_val = 0
-        new_y.append(new_val)
+    # States
+    states = [
+              'wisconsin_deep.csv',
+              'colorado_deep.csv',
+              'illinois_deep.csv',
+              'indiana_deep.csv',
+              'iowa_deep.csv',
+              'minnesota_deep.csv',
+              'missouri_deep.csv',
+              'ohio_deep.csv',
+              'nebraska_deep.csv',
+              'indiana_deep.csv',
+              'kansas_deep.csv',
+             ]
 
-    y = np.array(new_y)
-    kfold = KFold(5, shuffle=True, random_state=1)
+    temp_dfs = list()
+    for state in states:
+        state_file = '../data/' + state
+        X, y, cols = preprocess(csv_file=state_file)
+         # Convert y into 0, 1
+         # If positive = 1
+         # If negative = 0
+        new_y = []
+        for value in y:
+            if value == 'positive':
+                new_val = 1
+            else:
+                new_val = 0
+            new_y.append(new_val)
 
-    #X is the dataset
-    performance = defaultdict(list)
-    for foldTrainX, foldTestX in kfold.split(X):
-        trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
-                                           X[foldTestX], y[foldTestX]
-        # structure numbers
-        acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
-        performance['accuracy'].append(acc)
-        performance['kappa'].append(kappa)
-        performance['auc'].append(auc)
-        performance['fpr'].append(fpr)
-        performance['tpr'].append(tpr)
-        performance['confusion_matrix'].append(cm)
-        performance['classification_report'].append(cr)
-        performance['shap_values'].append(xgb_sv)
-        performance['lime_val'].append(xgb_lime)
+        y = np.array(new_y)
+        kfold = KFold(5, shuffle=True, random_state=1)
 
-    # Performance metrics
-    print('Performance metrics:')
-    print(performance['accuracy'])
-    print(np.mean(performance['accuracy']))
-    print(performance['kappa'])
-    print(np.mean(performance['kappa']))
+        # X is the dataset
+        performance = defaultdict(list)
+        for foldTrainX, foldTestX in kfold.split(X):
+            trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
+                                              X[foldTestX], y[foldTestX]
+            # structure numbers
+            acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
+            state_name = state[:-9]
+            performance['state'].append(state_name)
+            performance['accuracy'].append(acc)
+            performance['kappa'].append(kappa)
+            performance['auc'].append(auc)
+            performance['fpr'].append(fpr)
+            performance['tpr'].append(tpr)
+            performance['confusion_matrix'].append(cm)
+            performance['classification_report'].append(cr)
+            performance['shap_values'].append(xgb_sv)
+            performance['lime_val'].append(xgb_lime)
 
+            # Create a dataframe
+            temp_df = pd.DataFrame(performance, columns=['state',
+                                                     'accuracy',
+                                                     'kappa',
+                                                     'auc',
+                                                     'fpr',
+                                                     'tpr',
+                                                     'confusion_matrix',
+                                                     'shap_values',
+                                                     'lime_val',
+                                                    ])
+        temp_dfs.append(temp_df)
+    performance_df = pd.concat(temp_dfs)
+    print(performance_df)
     return performance
 
 if __name__ =='__main__':

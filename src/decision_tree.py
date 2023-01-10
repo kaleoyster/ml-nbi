@@ -313,38 +313,66 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     return kappaVals, accVals, featImps, models
 
 def main():
+    # States
+    states = [
+              'wisconsin_deep.csv',
+              'colorado_deep.csv',
+              'illinois_deep.csv',
+              'indiana_deep.csv',
+              'iowa_deep.csv',
+              'minnesota_deep.csv',
+              'missouri_deep.csv',
+              'ohio_deep.csv',
+              'nebraska_deep.csv',
+              'indiana_deep.csv',
+              'kansas_deep.csv',
+             ]
 
-    X, y, cols = preprocess()
-    kfold = KFold(5, shuffle=True, random_state=1)
+    temp_dfs = list()
+    for state in states:
+        state_file = '../data/' + state
+        X, y, cols = preprocess(csv_file=state_file)
+        kfold = KFold(5, shuffle=True, random_state=1)
 
-    # X is the dataset
-    performance = defaultdict(list)
-    for foldTrainX, foldTestX in kfold.split(X):
-        trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
-                                          X[foldTestX], y[foldTestX]
+        # X is the dataset
+        performance = defaultdict(list)
+        for foldTrainX, foldTestX in kfold.split(X):
+            trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
+                                              X[foldTestX], y[foldTestX]
 
-        # Entropy
-        acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
-                                                 testX, testy, cols,
-                                                 criteria='entropy',
-                                                 max_depth=30)
-        performance['accuracy'].append(acc)
-        performance['kappa'].append(kappa)
-        performance['auc'].append(auc)
-        performance['fpr'].append(fpr)
-        performance['tpr'].append(tpr)
-        performance['confusion_matrix'].append(cm)
-        performance['classification_report'].append(cr)
-        performance['feature_importance'].append(fi)
-        performance['shap_values'].append(dt_sv)
-        performance['lime_val'].append(dt_lime)
 
-    print('Performance metrics:')
-    print(performance['accuracy'])
-    print(np.mean(performance['accuracy']))
-    print(performance['kappa'])
-    print(np.mean(performance['kappa']))
+            # Entropy
+            acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
+                                                     testX, testy, cols,
+                                                     criteria='entropy',
+                                                     max_depth=30)
+            state_name = state[:-9]
+            performance['state'].append(state_name)
+            performance['accuracy'].append(acc)
+            performance['kappa'].append(kappa)
+            performance['auc'].append(auc)
+            performance['fpr'].append(fpr)
+            performance['tpr'].append(tpr)
+            performance['confusion_matrix'].append(cm)
+            performance['classification_report'].append(cr)
+            performance['feature_importance'].append(fi)
+            performance['shap_values'].append(dt_sv)
+            performance['lime_val'].append(dt_lime)
 
+            # Create a dataframe
+            temp_df = pd.DataFrame(performance, columns=['state',
+                                                     'accuracy',
+                                                     'kappa',
+                                                     'auc',
+                                                     'fpr',
+                                                     'tpr',
+                                                     'confusion_matrix',
+                                                     'shap_values',
+                                                     'lime_val',
+                                                    ])
+        temp_dfs.append(temp_df)
+    performance_df = pd.concat(temp_dfs)
+    print(performance_df)
     return performance
 
 if __name__ == '__main__':

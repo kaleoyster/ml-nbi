@@ -133,36 +133,64 @@ def random_forest_utility(train_x, trainy,
     return acc, _cm, _cr, kappa, _auc, fpr, tpr, model, _fi, instance_exp, rf_sv
 
 def main():
-    X, y, cols = preprocess()
-    kfold = KFold(5, shuffle=True, random_state=1)
+    # States
+    states = [
+              'wisconsin_deep.csv',
+              'colorado_deep.csv',
+              'illinois_deep.csv',
+              'indiana_deep.csv',
+              'iowa_deep.csv',
+              'minnesota_deep.csv',
+              'missouri_deep.csv',
+              'ohio_deep.csv',
+              'nebraska_deep.csv',
+              'indiana_deep.csv',
+              'kansas_deep.csv',
+             ]
 
-    performance = defaultdict(list)
-    # X is the dataset
-    for foldTrainX, foldTestX in kfold.split(X):
-        trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
-                                          X[foldTestX], y[foldTestX]
+    temp_dfs = list()
+    for state in states:
+        state_file = '../data/' + state
+        X, y, cols = preprocess(csv_file=state_file)
+        kfold = KFold(5, shuffle=True, random_state=1)
 
-        # structure numbers
-        gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, rf_lime, rf_sv = random_forest_utility(trainX, trainy,
-                 testX, testy, cols, max_depth=10)
-        performance['accuracy'].append(gacc)
-        performance['kappa'].append(gkappa)
-        performance['auc'].append(gauc)
-        performance['fpr'].append(gfpr)
-        performance['tpr'].append(gtpr)
-        performance['confusion_matrix'].append(gcm)
-        performance['classification_report'].append(gcr)
-        performance['feature_importance'].append(fi)
-        performance['shap_values'].append(rf_sv)
-        performance['lime_val'].append(rf_lime)
+        # X is the dataset
+        performance = defaultdict(list)
+        for foldTrainX, foldTestX in kfold.split(X):
+            trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
+                                              X[foldTestX], y[foldTestX]
 
-    print('Performance metrics:')
-    print(performance['accuracy'])
-    print(np.mean(performance['accuracy']))
-    print(performance['kappa'])
-    print(np.mean(performance['kappa']))
-    #print(performance['feature_importance'])
 
+            # structure numbers
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, rf_lime, rf_sv = random_forest_utility(trainX, trainy,
+                     testX, testy, cols, max_depth=10)
+            state_name = state[:-9]
+            performance['state'].append(state_name)
+            performance['accuracy'].append(gacc)
+            performance['kappa'].append(gkappa)
+            performance['auc'].append(gauc)
+            performance['fpr'].append(gfpr)
+            performance['tpr'].append(gtpr)
+            performance['confusion_matrix'].append(gcm)
+            performance['classification_report'].append(gcr)
+            performance['feature_importance'].append(fi)
+            performance['shap_values'].append(rf_sv)
+            performance['lime_val'].append(rf_lime)
+
+            # Create a dataframe
+            temp_df = pd.DataFrame(performance, columns=['state',
+                                                     'accuracy',
+                                                     'kappa',
+                                                     'auc',
+                                                     'fpr',
+                                                     'tpr',
+                                                     'confusion_matrix',
+                                                     'shap_values',
+                                                     'lime_val',
+                                                    ])
+        temp_dfs.append(temp_df)
+    performance_df = pd.concat(temp_dfs)
+    print(performance_df)
     return performance
 
 if __name__ =='__main__':

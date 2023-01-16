@@ -90,12 +90,17 @@ def light_boost_utility(train_x, trainy,
    # PartialDependenceDisplay.from_estimator(model, train_x, features)
    # print("PartialDependenceDisplay Working OK")
 
-   # lg_exp = TreeExplainer(model)
+    lg_exp = TreeExplainer(model)
    # #lg_exp = shap.Explainer(model)
    # #lg_sv = explainer(train_x)
 
-   # lg_sv = lg_exp.shap_values(train_x)
-   # lg_ev = lg_exp.expected_value
+    lg_sv = lg_exp.shap_values(train_x)
+    lg_ev = lg_exp.expected_value
+
+
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(lg_sv, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
    # # LIME:
    # lg_exp_lime = lime_tabular.LimeTabularExplainer(
@@ -128,6 +133,7 @@ def light_boost_utility(train_x, trainy,
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
     fpr, tpr, threshold = roc_curve(testy, prediction_prob)
+
     print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
     print("Printing area under curve")
@@ -142,22 +148,22 @@ def light_boost_utility(train_x, trainy,
     #print("printing auc", _auc)
     instance_exp = []
     lg_sv = []
-    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, instance_exp, lg_sv
+    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, instance_exp, lg_sv, mean_shap_features
 
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+              #'wisconsin_deep.csv',
+              #'colorado_deep.csv',
+              #'illinois_deep.csv',
+              #'indiana_deep.csv',
+              #'iowa_deep.csv',
+              #'minnesota_deep.csv',
+              #'missouri_deep.csv',
+              #'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+              #'indiana_deep.csv',
+              #'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -187,7 +193,7 @@ def main():
 
             #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
             #                                          testX, testy, cols)
-            acc, cm, cr, kappa, auc, fpr, tpr, lg_lime, lg_sv = light_boost_utility(trainX, trainy, testX, testy, cols)
+            acc, cm, cr, kappa, auc, fpr, tpr, lg_lime, lg_sv, mean_shap_features = light_boost_utility(trainX, trainy, testX, testy, cols)
 
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -198,7 +204,7 @@ def main():
             performance['tpr'].append(tpr)
             performance['confusion_matrix'].append(cm)
             performance['classification_report'].append(cr)
-            performance['shap_values'].append(lg_sv)
+            performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(lg_lime)
 
             # Create a dataframe

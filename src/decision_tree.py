@@ -116,12 +116,18 @@ def tree_utility(train_x, trainy,
     #fig = instance_exp.as_pyplot_figure()
     #instance_exp.save_to_file('dt_lime_report.html')
 
-    #dt_exp = TreeExplainer(model)
-    #dt_sv = np.array(dt_exp.shap_values(train_x))
-    #dt_ev = np.array(dt_exp.expected_value)
+    dt_exp = TreeExplainer(model)
+    dt_sv = np.array(dt_exp.shap_values(train_x))
+    dt_ev = np.array(dt_exp.expected_value)
 
-    #dt_sv =  dt_exp.shap_values(train_x)
-    #dt_ev =  dt_exp.expected_value
+    dt_sv =  dt_exp.shap_values(train_x)
+    dt_ev =  dt_exp.expected_value
+
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(dt_sv, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+
+
 
     ##print("Shape of the RF values:", dt_sv[0])
     ##print("Shape of the Light boost Shap Values")
@@ -155,7 +161,7 @@ def tree_utility(train_x, trainy,
     instance_exp = []
     dt_sv = []
 
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, dt_sv
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, dt_sv, mean_shap_features
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
@@ -315,17 +321,17 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+              #'wisconsin_deep.csv',
+              #'colorado_deep.csv',
+              #'illinois_deep.csv',
+              #'indiana_deep.csv',
+              #'iowa_deep.csv',
+              #'minnesota_deep.csv',
+              #'missouri_deep.csv',
+              #'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+              #'indiana_deep.csv',
+              #'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -342,7 +348,7 @@ def main():
 
 
             # Entropy
-            acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv= tree_utility(trainX, trainy,
+            acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv, mean_shap_features = tree_utility(trainX, trainy,
                                                      testX, testy, cols,
                                                      criteria='entropy',
                                                      max_depth=30)
@@ -356,7 +362,7 @@ def main():
             performance['confusion_matrix'].append(cm)
             performance['classification_report'].append(cr)
             performance['feature_importance'].append(fi)
-            performance['shap_values'].append(dt_sv)
+            performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(dt_lime)
 
             # Create a dataframe

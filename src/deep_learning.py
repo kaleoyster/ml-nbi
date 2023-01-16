@@ -29,17 +29,17 @@ import shap
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+              #'wisconsin_deep.csv',
+              #'colorado_deep.csv',
+              #'illinois_deep.csv',
+              #'indiana_deep.csv',
+              #'iowa_deep.csv',
+              #'minnesota_deep.csv',
+              #'missouri_deep.csv',
+              #'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+              #'indiana_deep.csv',
+              #'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -101,7 +101,11 @@ def main():
             explainer = shap.DeepExplainer(model, X_train)
             #explainer = shap.KernelExplainer(model, X_train[:5])
             shap_values = explainer.shap_values(X_test)
-            shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
+            #shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
+
+            # Calculating mean shap values also known as SHAP feature importance
+            mean_shap = np.mean(shap_values, axis=0)
+            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
             # Evaluate model
             loss, acc =  model.evaluate(X_test, y_test, verbose=0)
@@ -141,6 +145,7 @@ def main():
             performance['auc'].append(_auc)
             performance['fpr'].append(fpr)
             performance['tpr'].append(tpr)
+            performance['shap_values'].append(mean_shap_features)
 
             # Create a dataframe
             temp_df = pd.DataFrame(performance, columns=['state',

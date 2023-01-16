@@ -64,36 +64,40 @@ def logistic_regression_utility(train_x, trainy,
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
 
-   # # Partial dependency
-   # features = [0, 1]
-   # PartialDependenceDisplay.from_estimator(model, train_x, features)
-   # print("PartialDependenceDisplay Working OK")
+    # Partial dependency
+    #features = [0, 1]
+    #PartialDependenceDisplay.from_estimator(model, train_x, features)
+    #print("PartialDependenceDisplay Working OK")
 
+    ## SHAP
+    explainer = shap.Explainer(model, test_x)
+    shap_values = explainer(test_x)
 
-   # # SHAP
-   # explainer = shap.Explainer(model, test_x)
-   # shap_values = explainer(test_x)
-   # int_shap = np.array(shap_values.values, dtype=int)
+    int_shap = np.array(shap_values.values,
+                        dtype=int)
 
-   # # LIME:
-   # log_exp_lime = lime_tabular.LimeTabularExplainer(
-   #     training_data = train_x,
-   #     feature_names = X_train.columns,
-   #     class_names=['Repair', 'No Repair'],
-   #     #mode='regression'
-   #     discretize_continuous = True
-   # )
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(shap_values.values, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
-   # ## Explaining the instances using LIME
-   # instance_exp = log_exp_lime.explain_instance(
-   #     data_row = X_train.values[4],
-   #     predict_fn = model.predict_proba
-   # )
+    # # LIME:
+    # log_exp_lime = lime_tabular.LimeTabularExplainer(
+    #     training_data = train_x,
+    #     feature_names = X_train.columns,
+    #     class_names=['Repair', 'No Repair'],
+    #     #mode='regression'
+    #     discretize_continuous = True
+    # )
 
-   # fig = instance_exp.as_pyplot_figure()
-   # fig.savefig('lg_lime_report.jpg')
+    # ## Explaining the instances using LIME
+    # instance_exp = log_exp_lime.explain_instance(
+    #     data_row = X_train.values[4],
+    #     predict_fn = model.predict_proba
+    # )
 
-   # summary_plot(int_shap, train_x, feature_names=cols)
+    # fig = instance_exp.as_pyplot_figure()
+    # fig.savefig('lg_lime_report.jpg')
+    # summary_plot(int_shap, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
@@ -108,16 +112,17 @@ def logistic_regression_utility(train_x, trainy,
                   }
 
     testy_num = [class_label[i] for i in testy]
-    print("Shapes: ", np.shape(testy_num), np.shape(prediction_prob))
+    #print("Shapes: ", np.shape(testy_num), np.shape(prediction_prob))
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
-    print(testy_num[:10])
-    print(prediction_prob[:10])
+
+    #print(testy_num[:10])
+    #print(prediction_prob[:10])
+
     print("Checking dimensions")
     print(np.shape(testy_num), np.shape(prediction_prob))
     print(np.shape(fpr), np.shape(tpr))
     print("printing fpr and tpr")
     print(fpr, tpr)
-    #print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
     print("Printing area under curve")
     print(_auc)
@@ -128,22 +133,22 @@ def logistic_regression_utility(train_x, trainy,
     int_shap = []
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, int_shap
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, int_shap, mean_shap_features
 
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+            # 'wisconsin_deep.csv',
+            #  'colorado_deep.csv',
+            #  'illinois_deep.csv',
+            #  'indiana_deep.csv',
+            #  'iowa_deep.csv',
+            #  'minnesota_deep.csv',
+            #  'missouri_deep.csv',
+            #  'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+            #  'indiana_deep.csv',
+            #  'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -159,7 +164,7 @@ def main():
                                               X[foldTestX], y[foldTestX]
 
             # structure numbers
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, lr_sv, lr_lime = logistic_regression_utility(trainX, trainy,
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, lr_sv, lr_lime, mean_shap_features = logistic_regression_utility(trainX, trainy,
                                                      testX, testy, cols)
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -170,19 +175,19 @@ def main():
             performance['tpr'].append(gtpr)
             performance['confusion_matrix'].append(gcm)
             performance['classification_report'].append(gcr)
-            performance['shap_values'].append(lr_sv)
+            performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(lr_lime)
 
             # Create a dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
-                                                     'accuracy',
-                                                     'kappa',
-                                                     'auc',
-                                                     'fpr',
-                                                     'tpr',
-                                                     'confusion_matrix',
-                                                     'shap_values',
-                                                     'lime_val',
+                                                        'accuracy',
+                                                        'kappa',
+                                                        'auc',
+                                                        'fpr',
+                                                        'tpr',
+                                                        'confusion_matrix',
+                                                        'shap_values',
+                                                        'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)

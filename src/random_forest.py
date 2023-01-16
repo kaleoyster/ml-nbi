@@ -103,9 +103,14 @@ def random_forest_utility(train_x, trainy,
     # rf_exp_lime.show_in_notebook(show_table=True)
 
    # Tree explainer -> The shap values are presented in the test_x
-   # rf_exp = TreeExplainer(model)
-   # rf_sv = np.array(rf_exp.shap_values(test_x))
-   # rf_ev = np.array(rf_exp.expected_value)
+    rf_exp = TreeExplainer(model)
+    rf_sv = np.array(rf_exp.shap_values(test_x))
+    rf_ev = np.array(rf_exp.expected_value)
+
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(rf_sv, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+
    # #summary_plot(rf_sv[0], test_x, feature_names=cols)
    # summary_plot(rf_sv, train_x, feature_names=cols)
 
@@ -130,22 +135,22 @@ def random_forest_utility(train_x, trainy,
                               weights='quadratic')
     instance_exp = []
     rf_sv = []
-    return acc, _cm, _cr, kappa, _auc, fpr, tpr, model, _fi, instance_exp, rf_sv
+    return acc, _cm, _cr, kappa, _auc, fpr, tpr, model, _fi, instance_exp, rf_sv, mean_shap_features
 
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+              #'wisconsin_deep.csv',
+              #'colorado_deep.csv',
+              #'illinois_deep.csv',
+              #'indiana_deep.csv',
+              #'iowa_deep.csv',
+              #'minnesota_deep.csv',
+              #'missouri_deep.csv',
+              #'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+              #'indiana_deep.csv',
+              #'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -162,7 +167,7 @@ def main():
 
 
             # structure numbers
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, rf_lime, rf_sv = random_forest_utility(trainX, trainy,
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, rf_lime, rf_sv, mean_shap_features = random_forest_utility(trainX, trainy,
                      testX, testy, cols, max_depth=10)
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -174,7 +179,7 @@ def main():
             performance['confusion_matrix'].append(gcm)
             performance['classification_report'].append(gcr)
             performance['feature_importance'].append(fi)
-            performance['shap_values'].append(rf_sv)
+            performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(rf_lime)
 
             # Create a dataframe

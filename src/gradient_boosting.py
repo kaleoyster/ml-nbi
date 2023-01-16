@@ -101,9 +101,13 @@ def gradient_boosting_utility(train_x, trainy,
     #fig.savefig('grad_lime_report.jpg')
 
     ##model.fit(train_x, trainy)
-    #g_exp = TreeExplainer(model)
-    #g_sv = np.array(g_exp.shap_values(train_x))
-    #g_ev = np.array(g_exp.expected_value)
+    g_exp = TreeExplainer(model)
+    g_sv = np.array(g_exp.shap_values(train_x))
+    g_ev = np.array(g_exp.expected_value)
+
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(g_sv, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     #g_sv = g_exp.shap_values(train_x)
     #g_ev = g_exp.expected_value
@@ -129,22 +133,23 @@ def gradient_boosting_utility(train_x, trainy,
                               weights='quadratic')
     instance_exp = []
     g_sv = []
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, g_sv
+
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, g_sv, mean_shap_features
 
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+             # 'wisconsin_deep.csv',
+             # 'colorado_deep.csv',
+             # 'illinois_deep.csv',
+             # 'indiana_deep.csv',
+             # 'iowa_deep.csv',
+             # 'minnesota_deep.csv',
+             # 'missouri_deep.csv',
+             # 'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+             # 'indiana_deep.csv',
+             # 'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -160,7 +165,7 @@ def main():
                                               X[foldTestX], y[foldTestX]
 
             # structure numbers
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, gb_lime, gb_sv = gradient_boosting_utility(trainX,
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, gb_lime, gb_sv, mean_shap_features = gradient_boosting_utility(trainX,
                                                                                            trainy,
                                                      testX, testy, cols, max_depth=7)
             state_name = state[:-9]
@@ -173,7 +178,7 @@ def main():
             performance['confusion_matrix'].append(gcm)
             performance['classification_report'].append(gcr)
             performance['feature_importance'].append(fi)
-            performance['shap_values'].append(gb_sv)
+            performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(gb_lime)
 
             # Create a dataframe

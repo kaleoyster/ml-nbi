@@ -133,9 +133,13 @@ def xgb_utility(train_x, trainy,
     ##model.fit(train_x, trainy)
 
     ## SHAP
-    #xgb_exp = TreeExplainer(model)
-    #xgb_sv = xgb_exp.shap_values(train_x)
-    #xgb_ev = xgb_exp.expected_value
+    xgb_exp = TreeExplainer(model)
+    xgb_sv = xgb_exp.shap_values(train_x)
+    xgb_ev = xgb_exp.expected_value
+
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(xgb_sv, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     ## LIME:
     #xgb_exp_lime = lime_tabular.LimeTabularExplainer(
@@ -186,22 +190,22 @@ def xgb_utility(train_x, trainy,
 
     instance_exp = []
     xgb_sv = []
-    return _acc, _cm, _cr, _kappa, _auc, fpr, tpr, instance_exp, xgb_sv
+    return _acc, _cm, _cr, _kappa, _auc, fpr, tpr, instance_exp, xgb_sv, mean_shap_features
 
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+              #'wisconsin_deep.csv',
+              #'colorado_deep.csv',
+              #'illinois_deep.csv',
+              #'indiana_deep.csv',
+              #'iowa_deep.csv',
+              #'minnesota_deep.csv',
+              #'missouri_deep.csv',
+              #'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+              #'indiana_deep.csv',
+              #'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -228,7 +232,7 @@ def main():
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
             # structure numbers
-            acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv = xgb_utility(trainX, trainy, testX, testy, cols)
+            acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv, mean_shap_features = xgb_utility(trainX, trainy, testX, testy, cols)
             state_name = state[:-9]
             performance['state'].append(state_name)
             performance['accuracy'].append(acc)
@@ -238,7 +242,7 @@ def main():
             performance['tpr'].append(tpr)
             performance['confusion_matrix'].append(cm)
             performance['classification_report'].append(cr)
-            performance['shap_values'].append(xgb_sv)
+            performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(xgb_lime)
 
             # Create a dataframe

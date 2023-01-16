@@ -75,16 +75,20 @@ def support_vector_utility(train_x, trainy,
     #PartialDependenceDisplay.from_estimator(model, train_x, features)
     print("PartialDependenceDisplay Working OK")
 
-    #data_sample = shap.sample(test_x, 20)
-    #svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
+    data_sample = shap.sample(test_x, 20)
+    svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
 
     #print(svm_exp.shap_values(test_x))
 
     #svm_sv = np.array(svm_exp.shap_values(train_x))
     #print(svm_exp)
-    #svm_ev = np.array(svm_exp.expected_value)
+    svm_ev = np.array(svm_exp.expected_value)
+    svm_sv = svm_exp.shap_values(train_x)
 
-    #svm_sv = svm_exp.shap_values(train_x)
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(svm_sv, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+
     ##svm_ev = svm_exp.expected_value
 
     ## Partial dependency
@@ -133,22 +137,22 @@ def support_vector_utility(train_x, trainy,
 
     instance_exp = []
     svm_sv = []
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, svm_sv
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, svm_sv, mean_shap_features
 
 def main():
     # States
     states = [
-              'wisconsin_deep.csv',
-              'colorado_deep.csv',
-              'illinois_deep.csv',
-              'indiana_deep.csv',
-              'iowa_deep.csv',
-              'minnesota_deep.csv',
-              'missouri_deep.csv',
-              'ohio_deep.csv',
+              #'wisconsin_deep.csv',
+              #'colorado_deep.csv',
+              #'illinois_deep.csv',
+              #'indiana_deep.csv',
+              #'iowa_deep.csv',
+              #'minnesota_deep.csv',
+              #'missouri_deep.csv',
+              #'ohio_deep.csv',
               'nebraska_deep.csv',
-              'indiana_deep.csv',
-              'kansas_deep.csv',
+              #'indiana_deep.csv',
+              #'kansas_deep.csv',
              ]
 
     temp_dfs = list()
@@ -163,7 +167,7 @@ def main():
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
             # structure numbers
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv = support_vector_utility(trainX, trainy, testX, testy, cols)
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv, mean_shap_features = support_vector_utility(trainX, trainy, testX, testy, cols)
         state_name = state[:-9]
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
@@ -172,7 +176,7 @@ def main():
         performance['tpr'].append(gtpr)
         performance['confusion_matrix'].append(gcr)
         performance['classification_report'].append(gcr)
-        performance['shap_values'].append(svm_sv)
+        performance['shap_values'].append(mean_shap_features)
         performance['lime_val'].append(svm_lime)
 
         # Create a dataframe
@@ -188,7 +192,6 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
     return performance
 
 if __name__ == '__main__':

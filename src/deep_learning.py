@@ -94,7 +94,7 @@ def main():
                           metrics=['accuracy'])
 
             # Model fit
-            model.fit(X_train, y_train, batch_size=64, epochs=5)
+            model.fit(X_train, y_train, batch_size=64, epochs=100)
 
             # Implement this as a separate functions
             # Compute SHAP Values

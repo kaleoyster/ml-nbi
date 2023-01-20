@@ -4,8 +4,6 @@ Description:
 Date:
    October 3rd, 2022
 """
-
-import sys
 import sys
 import csv
 import pandas as pd
@@ -80,6 +78,9 @@ def logistic_regression_utility(train_x, trainy,
     mean_shap = np.mean(shap_values.values, axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
+    #print("printing the shape of mean_shap")
+    #print(np.shape(mean_shap))
+
     # # LIME:
     # log_exp_lime = lime_tabular.LimeTabularExplainer(
     #     training_data = train_x,
@@ -118,14 +119,14 @@ def logistic_regression_utility(train_x, trainy,
     #print(testy_num[:10])
     #print(prediction_prob[:10])
 
-    print("Checking dimensions")
-    print(np.shape(testy_num), np.shape(prediction_prob))
-    print(np.shape(fpr), np.shape(tpr))
-    print("printing fpr and tpr")
-    print(fpr, tpr)
+    #print("Checking dimensions")
+    #print(np.shape(testy_num), np.shape(prediction_prob))
+    #print(np.shape(fpr), np.shape(tpr))
+    #print("printing fpr and tpr")
+    #print(fpr, tpr)
     _auc = auc(fpr, tpr)
-    print("Printing area under curve")
-    print(_auc)
+    #print("Printing area under curve")
+    #print(_auc)
     #_auc = metrics.roc_auc_score(testy, prediction_prob)
     #_fi = dict(zip(cols, model.feature_importances_))
 
@@ -136,6 +137,7 @@ def logistic_regression_utility(train_x, trainy,
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, int_shap, mean_shap_features
 
 def main():
+
     # States
     states = [
             # 'wisconsin_deep.csv',
@@ -191,8 +193,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
-    return performance
+    return performance_df
 
 if __name__ =='__main__':
     main()

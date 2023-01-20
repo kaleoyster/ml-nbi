@@ -15,7 +15,7 @@ from tqdm import tqdm
 import pydotplus
 import lightgbm as lgb
 
-# Permutation importance
+# Permutation feature importance
 from sklearn.inspection import permutation_importance
 from sklearn.inspection import PartialDependenceDisplay
 
@@ -58,7 +58,7 @@ def light_boost_utility(train_x, trainy,
         cm: Confusion Report
         cr: Classification Report
         kappa: Kappa Value
-        model: Random Forest Model
+        model: Light boost Model
     """
 
     X_train = pd.DataFrame(train_x, columns=cols)
@@ -69,60 +69,62 @@ def light_boost_utility(train_x, trainy,
               eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
 
-   # print("printing feature importance")
-   # _fi = model.feature_importances_
-   # #_fn = model.feature_names
-   # print(_fi)
-   # print(len(cols))
-   # #print(_fn)
-   # # Permutation mean of the feature importance
-   # p_imp = permutation_importance(model,
-   #                                test_x,
-   #                                testy,
-   #                                n_repeats=10,
-   #                             random_state=0)
+    #print("printing feature importance")
+    #_fi = model.feature_importances_
+    #_fn = model.feature_names
+    #print(_fi)
+    #print(len(cols))
+    #print(_fn)
+    # Permutation mean of the feature importance
+    #p_imp = permutation_importance(model,
+    #                               test_x,
+    #                               testy,
+    #                               n_repeats=10,
+    #                            random_state=0)
 
-   # p_imp_mean = p_imp.importances_mean
-   # p_imp_std = p_imp.importances_std
+    #p_imp_mean = p_imp.importances_mean
+    #p_imp_std = p_imp.importances_std
 
-   # # Partial dependency
-   # features = [0, 1]
-   # PartialDependenceDisplay.from_estimator(model, train_x, features)
-   # print("PartialDependenceDisplay Working OK")
+    #Partial dependency
+    #features = [0, 1]
+    #PartialDependenceDisplay.from_estimator(model, train_x, features)
+    #print("PartialDependenceDisplay Working OK")
 
+    # SHAP
     lg_exp = TreeExplainer(model)
-   # #lg_exp = shap.Explainer(model)
-   # #lg_sv = explainer(train_x)
-
     lg_sv = lg_exp.shap_values(train_x)
     lg_ev = lg_exp.expected_value
 
-
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = np.mean(lg_sv, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    # Have for two classes
+    mean_shap = []
+    for target_class in lg_sv:
+        mean_shap.append(np.mean(target_class, axis=0)) # averaging shap values across all values row
 
-   # # LIME:
-   # lg_exp_lime = lime_tabular.LimeTabularExplainer(
-   #     training_data = np.array(X_train),
-   #     feature_names = X_train.columns,
-   #     class_names=['Repair', 'No Repair'],
-   #     mode='regression'
-   # )
+    mean_shap_2 = np.mean(mean_shap, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
 
-   # ## Explaining the instances using LIME
-   # instance_exp = lg_exp_lime.explain_instance(
-   #     data_row = X_train.values[4],
-   #     predict_fn = model.predict
-   # )
+    # LIME:
+    lg_exp_lime = lime_tabular.LimeTabularExplainer(
+        training_data = np.array(X_train),
+        feature_names = X_train.columns,
+        class_names=['Repair', 'No Repair'],
+        mode='regression'
+    )
 
-   # fig = instance_exp.as_pyplot_figure()
-   # fig.savefig('lg_lime_report.jpg')
+    ## Explaining the instances using LIME
+    instance_exp = lg_exp_lime.explain_instance(
+        data_row = X_train.values[4],
+        predict_fn = model.predict
+    )
 
-   # #print("Shape of the RF values:", lg_sv[0])
-   # #print("Shape of the Light boost Shap Values")
+    #fig = instance_exp.as_pyplot_figure()
+    #fig.savefig('lg_lime_report.jpg')
 
-   # summary_plot(lg_sv, train_x, feature_names=cols)
+    #print("Shape of the RF values:", lg_sv[0])
+    #print("Shape of the Light boost Shap Values")
+
+    #summary_plot(lg_sv, train_x, feature_names=cols)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
     #shap.plots.waterfall(lg_sv[0])
@@ -134,10 +136,10 @@ def light_boost_utility(train_x, trainy,
     _cr = classification_report(testy, prediction, zero_division=0)
     fpr, tpr, threshold = roc_curve(testy, prediction_prob)
 
-    print("printing fpr and tpr", fpr, tpr)
+    #print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
-    print("Printing area under curve")
-    print(_auc)
+    #print("Printing area under curve")
+    #print(_auc)
 
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
@@ -151,6 +153,7 @@ def light_boost_utility(train_x, trainy,
     return _acc, _cm, _cr, kappa, _auc, fpr, tpr, instance_exp, lg_sv, mean_shap_features
 
 def main():
+
     # States
     states = [
               #'wisconsin_deep.csv',
@@ -181,7 +184,7 @@ def main():
             new_y.append(new_val)
         y = np.array(new_y)
 
-
+        # K fold cross validation
         kfold = KFold(5, shuffle=True, random_state=1)
 
         # X is the dataset
@@ -189,10 +192,7 @@ def main():
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
-            # structure numbers
-
-            #gacc, gcm, gcr, gkappa, gmodel = xgb_utility(trainX, trainy,
-            #                                          testX, testy, cols)
+            # Training 
             acc, cm, cr, kappa, auc, fpr, tpr, lg_lime, lg_sv, mean_shap_features = light_boost_utility(trainX, trainy, testX, testy, cols)
 
             state_name = state[:-9]
@@ -220,17 +220,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
-    return performance
-
-
-    print('Performance metrics:')
-    print(performance['accuracy'])
-    print(np.mean(performance['accuracy']))
-    print(performance['kappa'])
-    print(np.mean(performance['kappa']))
-
-    return performance
+    return performance_df
 
 if __name__ =='__main__':
     main()

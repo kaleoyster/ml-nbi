@@ -105,13 +105,15 @@ def gradient_boosting_utility(train_x, trainy,
     g_sv = np.array(g_exp.shap_values(train_x))
     g_ev = np.array(g_exp.expected_value)
 
+    #print("Printing the sv values")
+    #print(np.shape(g_sv))
+
     # Calculating mean shap values also known as SHAP feature importance
     mean_shap = np.mean(g_sv, axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     #g_sv = g_exp.shap_values(train_x)
     #g_ev = g_exp.expected_value
-
     #summary_plot(g_sv, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)[::, 1]
@@ -122,11 +124,12 @@ def gradient_boosting_utility(train_x, trainy,
 
     class_label = {'negative':0,
                    'positive':1}
+
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
     _auc = auc(fpr, tpr)
-    print("Printing area under curve")
-    print(_auc)
+    #print("Printing area under curve")
+    #print(_auc)
 
     _fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
@@ -194,7 +197,6 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
     return performance
 
 if __name__ =='__main__':

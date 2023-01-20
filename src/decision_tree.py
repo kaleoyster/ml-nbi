@@ -82,6 +82,7 @@ def tree_utility(train_x, trainy,
     ## plot the means and standard deviations of the importances
     ##plot_importance(importance_df, figsize=(12, 20))
 
+    # Fit model
     model.fit(X_train, trainy)
     ##model.fit(train_x, trainy)
 
@@ -115,22 +116,24 @@ def tree_utility(train_x, trainy,
 
     #fig = instance_exp.as_pyplot_figure()
     #instance_exp.save_to_file('dt_lime_report.html')
+    dt_exp = shap.Explainer(model, train_x)
+    dt_sv = explainer(train_x)
+    #dt_sv = np.array(dt_exp.shap_values(train_x))
+    #dt_ev = np.array(dt_exp.expected_value)
 
-    dt_exp = TreeExplainer(model)
-    dt_sv = np.array(dt_exp.shap_values(train_x))
-    dt_ev = np.array(dt_exp.expected_value)
-
-    dt_sv =  dt_exp.shap_values(train_x)
-    dt_ev =  dt_exp.expected_value
+    #dt_sv =  dt_exp.shap_values(test_x)
+    #dt_ev =  dt_exp.expected_value
 
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = np.mean(dt_sv, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    # Shape: (2, 11360, 49)
+    mean_shap = []
+    for target_class in dt_sv:
+        mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
+    mean_shap_2 = np.mean(mean_shap, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
 
-
-
-    ##print("Shape of the RF values:", dt_sv[0])
-    ##print("Shape of the Light boost Shap Values")
+    #print("Shape of the RF values:", dt_sv[0])
+    #print("Shape of the Light boost Shap Values")
     #summary_plot(dt_sv, train_x, feature_names=cols)
 
     prediction_prob = model.predict_proba(test_x)[::, 1]
@@ -138,21 +141,25 @@ def tree_utility(train_x, trainy,
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
+
     class_label = {
                     'negative':0,
                     'positive':1
                     }
+
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
+
     #print(testy_num[:100])
     #print(prediction_prob[:100])
-    print("Checking dimensions")
-    print(np.shape(testy_num), np.shape(prediction_prob))
-    print(np.shape(fpr), np.shape(tpr))
-    print("printing fpr and tpr")
-    print(fpr, tpr)
+
+    #print("Checking dimensions")
+    #print(np.shape(testy_num), np.shape(prediction_prob))
+    #print(np.shape(fpr), np.shape(tpr))
+    #print("printing fpr and tpr")
+    #print(fpr, tpr)
     _auc = auc(fpr, tpr)
-    print("printing auc", _auc)
+    #print("printing auc", _auc)
     _fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
@@ -176,7 +183,7 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     Args:
         df (Dataframe)
     """
-    # Kfold cross validation
+    # Kfold Cross Validation
     kfold = KFold(nFold, shuffle=True, random_state=1)
 
     # For storing Confusion Matrix
@@ -199,7 +206,7 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     gKappaValues = []
     eKappaValues = []
 
-    # Converting them to array
+    # Converting columns into to numpy array
     cols = X.columns
     X = np.array(X)
     y = np.array(y)
@@ -319,6 +326,7 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     return kappaVals, accVals, featImps, models
 
 def main():
+
     # States
     states = [
               #'wisconsin_deep.csv',
@@ -378,8 +386,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
-    return performance
+    return performance_df
 
 if __name__ == '__main__':
     main()

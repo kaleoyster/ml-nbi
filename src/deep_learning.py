@@ -101,16 +101,22 @@ def main():
             explainer = shap.DeepExplainer(model, X_train)
             #explainer = shap.KernelExplainer(model, X_train[:5])
             shap_values = explainer.shap_values(X_test)
+
             #shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
 
             # Calculating mean shap values also known as SHAP feature importance
-            mean_shap = np.mean(shap_values, axis=0)
-            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+
+            mean_shap = []
+            for target_class in shap_values:
+                mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
+
+            mean_shap_2 = np.mean(mean_shap, axis=0)
+            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
 
             # Evaluate model
             loss, acc =  model.evaluate(X_test, y_test, verbose=0)
-            print("Test loss: ", loss)
-            print("Test accuracy:", acc)
+            #print("Test loss: ", loss)
+            #print("Test accuracy:", acc)
 
             # Predict test model
             y_pred = model.predict(X_test)
@@ -125,18 +131,18 @@ def main():
             _kappa = kappa_result.numpy()
 
             # Kappa
-            print("Test Kappa:", _kappa)
+            #print("Test Kappa:", _kappa)
 
             # Computing AUC and ROC value
             fpr, tpr, threshold_keras = roc_curve(y_test_r, y_pred_r)
             _auc = auc(fpr, tpr)
-            print("AUC: ", _auc)
+            #print("AUC: ", _auc)
 
             actual = np.argmax(y_test, axis=1)
             predict = np.argmax(y_pred, axis=1)
 
-            print(f'Actual:{actual}')
-            print(f'Predicted:{predict}')
+            #print(f'Actual:{actual}')
+            #print(f'Predicted:{predict}')
 
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -153,11 +159,12 @@ def main():
                                                          'kappa',
                                                          'auc',
                                                          'fpr',
-                                                        'tpr',
+                                                         'tpr',
+                                                         'shap_values'
                                                         ])
         temp_dfs.append(temp_df)
         performance_df = pd.concat(temp_dfs)
-        print(performance_df)
         return performance
 
-main()
+if __name__=='__main__':
+    main()

@@ -2,10 +2,10 @@
 Description:
     Random forest model to predict the future maintenance of bridges
 
-Date:
+Start Date:
    October 3rd, 2022
 """
-import sys
+
 import sys
 import csv
 import pandas as pd
@@ -18,7 +18,7 @@ import pydotplus
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier
 
-# Permutation importance
+# Permutation Feature Importance
 from sklearn.inspection import permutation_importance
 from sklearn.inspection import PartialDependenceDisplay
 
@@ -31,7 +31,7 @@ from shap import summary_plot
 import lime
 from lime import lime_tabular
 
-# Metrics and stats
+# Metrics and Stats
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -61,58 +61,65 @@ def random_forest_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
-    # new dataframes
+    # Training and testing model 
     X_train = pd.DataFrame(train_x)
     #y_train = pd.DataFrame(trainy, columns=['class'])
+
+    # Initialize model
     model = RandomForestClassifier(max_depth=max_depth,
                                    random_state=0)
+    # Fit model
     model.fit(X_train, trainy)
+
     #model.fit(train_x, trainy)
-   # p_imp = permutation_importance(model,
-   #                                test_x,
-   #                                testy,
-   #                                n_repeats=10,
-   #                             random_state=0)
+    # p_imp = permutation_importance(model,
+    #                                test_x,
+    #                                testy,
+    #                                n_repeats=10,
+    #                             random_state=0)
 
-   # p_imp_mean = p_imp.importances_mean
-   # p_imp_std = p_imp.importances_std
+    # p_imp_mean = p_imp.importances_mean
+    # p_imp_std = p_imp.importances_std
 
-   # # Partial dependency
-   # features = [0, 1]
-   # PartialDependenceDisplay.from_estimator(model, train_x, features)
-   # print("PartialDependenceDisplay Working OK")
+    # # Partial dependency
+    # features = [0, 1]
+    # PartialDependenceDisplay.from_estimator(model, train_x, features)
+    # print("PartialDependenceDisplay Working OK")
 
-   # ## Lime explainer
-   # rf_exp_lime = lime_tabular.LimeTabularExplainer(
-   #     training_data = np.array(X_train),
-   #     feature_names = X_train.columns,
-   #     class_names=['Repair', 'No Repair'],
-   #     mode='classification'
-   # )
+    # ## Lime explainer
+    # rf_exp_lime = lime_tabular.LimeTabularExplainer(
+    #     training_data = np.array(X_train),
+    #     feature_names = X_train.columns,
+    #     class_names=['Repair', 'No Repair'],
+    #     mode='classification'
+    # )
 
-   # ## Explaining the instances using LIME
-   # instance_exp = rf_exp_lime.explain_instance(
-   #     data_row = X_train.iloc[4],
-   #     predict_fn = model.predict_proba
-   # )
+    # ## Explaining the instances using LIME
+    # instance_exp = rf_exp_lime.explain_instance(
+    #     data_row = X_train.iloc[4],
+    #     predict_fn = model.predict_proba
+    # )
 
-   # fig = instance_exp.as_pyplot_figure()
-   # fig.savefig('lime_report.jpg')
+    # fig = instance_exp.as_pyplot_figure()
+    # fig.savefig('lime_report.jpg')
     #print(instance_exp)
 
-    # rf_exp_lime.show_in_notebook(show_table=True)
+    #rf_exp_lime.show_in_notebook(show_table=True)
 
-   # Tree explainer -> The shap values are presented in the test_x
+    #Tree explainer -> The shap values are presented in the test_x
     rf_exp = TreeExplainer(model)
-    rf_sv = np.array(rf_exp.shap_values(test_x))
+    rf_sv = np.array(rf_exp.shap_values(train_x))
     rf_ev = np.array(rf_exp.expected_value)
 
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = np.mean(rf_sv, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    mean_shap = []
+    for target_class in rf_sv:
+        mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
 
-   # #summary_plot(rf_sv[0], test_x, feature_names=cols)
-   # summary_plot(rf_sv, train_x, feature_names=cols)
+    mean_shap_2 = np.mean(mean_shap, axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
+    #summary_plot(rf_sv[0], test_x, feature_names=cols)
+    #summary_plot(rf_sv, train_x, feature_names=cols)
 
     # Predictions
     prediction = model.predict(test_x)
@@ -127,8 +134,8 @@ def random_forest_utility(train_x, trainy,
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
     _auc = auc(fpr, tpr)
-    print("Printing area under curve")
-    print(_auc)
+    #print("Printing area under curve")
+    #print(_auc)
 
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
@@ -138,6 +145,7 @@ def random_forest_utility(train_x, trainy,
     return acc, _cm, _cr, kappa, _auc, fpr, tpr, model, _fi, instance_exp, rf_sv, mean_shap_features
 
 def main():
+
     # States
     states = [
               #'wisconsin_deep.csv',
@@ -166,7 +174,7 @@ def main():
                                               X[foldTestX], y[foldTestX]
 
 
-            # structure numbers
+            # Training
             gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, rf_lime, rf_sv, mean_shap_features = random_forest_utility(trainX, trainy,
                      testX, testy, cols, max_depth=10)
             state_name = state[:-9]
@@ -182,7 +190,7 @@ def main():
             performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(rf_lime)
 
-            # Create a dataframe
+            # Create a temp dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
                                                      'accuracy',
                                                      'kappa',
@@ -195,9 +203,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
-    return performance
+    return performance_df
 
 if __name__ =='__main__':
     main()
-main()

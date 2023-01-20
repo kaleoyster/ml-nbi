@@ -6,7 +6,7 @@ Date:
    October 3rd, 2022
 """
 
-import sys
+# Essentials
 import sys
 import csv
 import pandas as pd
@@ -66,14 +66,19 @@ def support_vector_utility(train_x, trainy,
         kappa: Kappa Value
         model: Support vector machine Model
     """
+    # Training and testing data
     X_train = pd.DataFrame(train_x, columns=cols)
+
+    # Model initialization
     model = make_pipeline(StandardScaler(),
                           SVC(gamma='auto',
                               probability=True))
+    # Fit model
     model.fit(train_x, trainy)
     features = [0, 1]
+
     #PartialDependenceDisplay.from_estimator(model, train_x, features)
-    print("PartialDependenceDisplay Working OK")
+    #print("PartialDependenceDisplay Working OK")
 
     data_sample = shap.sample(test_x, 20)
     svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
@@ -127,19 +132,20 @@ def support_vector_utility(train_x, trainy,
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
     _auc = auc(fpr, tpr)
-    print("Printing area under curve")
-    print(_auc)
+    #print("Printing area under curve")
+    #print(_auc)
 
     #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-#    _auc = auc(fpr, tpr)
+    #_auc = auc(fpr, tpr)
 
     instance_exp = []
     svm_sv = []
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, svm_sv, mean_shap_features
 
 def main():
+
     # States
     states = [
               #'wisconsin_deep.csv',
@@ -159,6 +165,8 @@ def main():
     for state in states:
         state_file = '../data/' + state
         X, y, cols = preprocess(csv_file=state_file)
+
+        # K-fold cross validation
         kfold = KFold(5, shuffle=True, random_state=1)
 
         # X is the dataset
@@ -166,8 +174,9 @@ def main():
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
-            # structure numbers
+            # Training
             gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv, mean_shap_features = support_vector_utility(trainX, trainy, testX, testy, cols)
+
         state_name = state[:-9]
         performance['accuracy'].append(gacc)
         performance['kappa'].append(gkappa)
@@ -179,7 +188,7 @@ def main():
         performance['shap_values'].append(mean_shap_features)
         performance['lime_val'].append(svm_lime)
 
-        # Create a dataframe
+        # Create a temp dataframe
         temp_df = pd.DataFrame(performance, columns=['state',
                                                      'accuracy',
                                                      'kappa',
@@ -192,7 +201,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    return performance
+    return performance_df
 
 if __name__ == '__main__':
     main()

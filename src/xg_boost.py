@@ -83,9 +83,9 @@ def xgb_utility(train_x, trainy,
         cm: Confusion Report
         cr: Classification Report
         kappa: Kappa Value
-        model: Random Forest Model
+        model: XGB boost Model
     """
-    # Train model
+    # Training and testing dataset
     X_train = pd.DataFrame(train_x, columns=cols)
     y_train = pd.DataFrame(trainy)
 
@@ -99,7 +99,7 @@ def xgb_utility(train_x, trainy,
     # num_round = 200
     # bst = model.train(param, dtrain, num_round, watchlist)
 
-   # model.fit(train_x, trainy)
+    # model.fit(train_x, trainy)
     model.fit(train_x, trainy,
               eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
@@ -132,16 +132,17 @@ def xgb_utility(train_x, trainy,
     ##pyplot.show()
     ##model.fit(train_x, trainy)
 
-    ## SHAP
+    # SHAP
     xgb_exp = TreeExplainer(model)
     xgb_sv = xgb_exp.shap_values(train_x)
     xgb_ev = xgb_exp.expected_value
 
-    # Calculating mean shap values also known as SHAP feature importance
+    # Calculating mean shap values also known as SHAP feature importance 
+    # Shape = (11360, 49)
     mean_shap = np.mean(xgb_sv, axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
-    ## LIME:
+    # LIME:
     #xgb_exp_lime = lime_tabular.LimeTabularExplainer(
     #    training_data = np.array(X_train),
     #    feature_names = X_train.columns,
@@ -178,15 +179,14 @@ def xgb_utility(train_x, trainy,
 
     fpr, tpr, threshold = roc_curve(testy, prediction_prob)
     _auc = auc(fpr, tpr)
-    print("Printing area under curve")
-    print(_auc)
+    #print("Printing area under curve")
+    #print(_auc)
 
     #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-#    fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
-#    _auc = auc(fpr, tpr)
-    print("printing the auc", _auc)
+    #fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
+    #_auc = auc(fpr, tpr)
 
     instance_exp = []
     xgb_sv = []
@@ -224,6 +224,8 @@ def main():
             new_y.append(new_val)
 
         y = np.array(new_y)
+
+        # K-fold cross validation
         kfold = KFold(5, shuffle=True, random_state=1)
 
         # X is the dataset
@@ -231,8 +233,9 @@ def main():
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
-            # structure numbers
+            # Training
             acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv, mean_shap_features = xgb_utility(trainX, trainy, testX, testy, cols)
+
             state_name = state[:-9]
             performance['state'].append(state_name)
             performance['accuracy'].append(acc)
@@ -245,21 +248,20 @@ def main():
             performance['shap_values'].append(mean_shap_features)
             performance['lime_val'].append(xgb_lime)
 
-            # Create a dataframe
+            # Create a temp dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
-                                                     'accuracy',
-                                                     'kappa',
-                                                     'auc',
-                                                     'fpr',
-                                                     'tpr',
-                                                     'confusion_matrix',
-                                                     'shap_values',
-                                                     'lime_val',
+                                                        'accuracy',
+                                                        'kappa',
+                                                        'auc',
+                                                        'fpr',
+                                                        'tpr',
+                                                        'confusion_matrix',
+                                                        'shap_values',
+                                                        'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df)
-    return performance
+    return performance_df
 
 if __name__ =='__main__':
     main()

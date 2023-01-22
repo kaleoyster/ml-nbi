@@ -61,6 +61,7 @@ def light_boost_utility(train_x, trainy,
         model: Light boost Model
     """
 
+    train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x, columns=cols)
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
     #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
@@ -91,18 +92,12 @@ def light_boost_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     # SHAP
-    lg_exp = TreeExplainer(model)
-    lg_sv = lg_exp.shap_values(train_x)
-    lg_ev = lg_exp.expected_value
-
+    lg_exp = shap.Explainer(model, train_x)
+    lg_sv = lg_exp(train_x)
+    mean_shap = np.mean(abs(lg_sv.values), 0).mean(1)
     # Calculating mean shap values also known as SHAP feature importance
     # Have for two classes
-    mean_shap = []
-    for target_class in lg_sv:
-        mean_shap.append(np.mean(target_class, axis=0)) # averaging shap values across all values row
-
-    mean_shap_2 = np.mean(mean_shap, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     # LIME:
     lg_exp_lime = lime_tabular.LimeTabularExplainer(

@@ -63,6 +63,7 @@ def random_forest_utility(train_x, trainy,
     """
     # Training and testing model 
     X_train = pd.DataFrame(train_x)
+    train_x = np.array(train_x, dtype='f')
     #y_train = pd.DataFrame(trainy, columns=['class'])
 
     # Initialize model
@@ -107,17 +108,15 @@ def random_forest_utility(train_x, trainy,
     #rf_exp_lime.show_in_notebook(show_table=True)
 
     #Tree explainer -> The shap values are presented in the test_x
-    rf_exp = TreeExplainer(model)
-    rf_sv = np.array(rf_exp.shap_values(train_x))
-    rf_ev = np.array(rf_exp.expected_value)
+    rf_exp = shap.Explainer(model, train_x)
+    rf_sv = rf_exp(train_x, check_additivity=False)
+    mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
+
+    #rf_sv = np.array(rf_exp.shap_values(train_x))
+    #rf_ev = np.array(rf_exp.expected_value)
 
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = []
-    for target_class in rf_sv:
-        mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
-
-    mean_shap_2 = np.mean(mean_shap, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
     #summary_plot(rf_sv[0], test_x, feature_names=cols)
     #summary_plot(rf_sv, train_x, feature_names=cols)
 
@@ -203,6 +202,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print(performance_df['shap_values'])
     return performance_df
 
 if __name__ =='__main__':

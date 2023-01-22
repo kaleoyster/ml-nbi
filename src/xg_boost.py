@@ -86,6 +86,7 @@ def xgb_utility(train_x, trainy,
         model: XGB boost Model
     """
     # Training and testing dataset
+    train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x, columns=cols)
     y_train = pd.DataFrame(trainy)
 
@@ -133,13 +134,12 @@ def xgb_utility(train_x, trainy,
     ##model.fit(train_x, trainy)
 
     # SHAP
-    xgb_exp = TreeExplainer(model)
-    xgb_sv = xgb_exp.shap_values(train_x)
-    xgb_ev = xgb_exp.expected_value
+    xgb_exp = shap.Explainer(model, train_x)
+    xgb_sv = xgb_exp(train_x)
 
     # Calculating mean shap values also known as SHAP feature importance 
     # Shape = (11360, 49)
-    mean_shap = np.mean(xgb_sv, axis=0)
+    mean_shap = np.mean(abs(xgb_sv.values), axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     # LIME:

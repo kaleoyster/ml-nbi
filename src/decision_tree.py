@@ -65,7 +65,8 @@ def tree_utility(train_x, trainy,
         model: Decision Tree Model
     """
     # new dataframes
-    #X_train = pd.DataFrame(train_x, columns=cols)
+    train_x = np.array(train_x, dtype='f')
+
     X_train = pd.DataFrame(train_x)
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     cv = KFold(n_splits=5, shuffle=False)
@@ -116,21 +117,13 @@ def tree_utility(train_x, trainy,
 
     #fig = instance_exp.as_pyplot_figure()
     #instance_exp.save_to_file('dt_lime_report.html')
-    dt_exp = shap.Explainer(model, train_x)
-    dt_sv = explainer(train_x)
-    #dt_sv = np.array(dt_exp.shap_values(train_x))
-    #dt_ev = np.array(dt_exp.expected_value)
 
-    #dt_sv =  dt_exp.shap_values(test_x)
-    #dt_ev =  dt_exp.expected_value
+    dt_exp = shap.Explainer(model, train_x)
+    dt_sv = dt_exp(train_x)
+    mean_shap = np.mean(abs(dt_sv.values), 0).mean(1)
 
     # Calculating mean shap values also known as SHAP feature importance
-    # Shape: (2, 11360, 49)
-    mean_shap = []
-    for target_class in dt_sv:
-        mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
-    mean_shap_2 = np.mean(mean_shap, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     #print("Shape of the RF values:", dt_sv[0])
     #print("Shape of the Light boost Shap Values")
@@ -353,7 +346,6 @@ def main():
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
-
 
             # Entropy
             acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv, mean_shap_features = tree_utility(trainX, trainy,

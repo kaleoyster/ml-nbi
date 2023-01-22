@@ -27,6 +27,7 @@ import shap
 """
 
 def main():
+
     # States
     states = [
               #'wisconsin_deep.csv',
@@ -65,6 +66,8 @@ def main():
             X_train, y_train, X_test, y_test = bridge_X[foldTrainX], Y[foldTrainX], \
                                             bridge_X[foldTestX], Y[foldTestX]
 
+            train_x = np.array(X_train, dtype='f')
+
             # Simple sequential model
             model = tf.keras.Sequential([
                 tf.keras.layers.Dense(10, activation='relu'),
@@ -98,20 +101,24 @@ def main():
 
             # Implement this as a separate functions
             # Compute SHAP Values
-            explainer = shap.DeepExplainer(model, X_train)
+            #explainer = shap.DeepExplainer(model, X_train)
+            explainer = shap.Explainer(model, train_x)
+
             #explainer = shap.KernelExplainer(model, X_train[:5])
-            shap_values = explainer.shap_values(X_test)
+            shap_values = explainer(train_x)
+            #shap_values = explainer.shap_values(X_test)
 
             #shap.summary_plot(shap_values[0], plot_type='bar', feature_names=cols)
 
             # Calculating mean shap values also known as SHAP feature importance
 
-            mean_shap = []
-            for target_class in shap_values:
-                mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
+            #mean_shap = []
+            #for target_class in shap_values:
+            #    mean_shap.append(np.mean(target_class, axis=0)) # Averaging shap values across all values row
 
-            mean_shap_2 = np.mean(mean_shap, axis=0)
-            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap_2)}
+            #mean_shap_2 = np.mean(mean_shap, axis=0)
+            mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
+            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
             # Evaluate model
             loss, acc =  model.evaluate(X_test, y_test, verbose=0)
@@ -164,6 +171,7 @@ def main():
                                                         ])
         temp_dfs.append(temp_df)
         performance_df = pd.concat(temp_dfs)
+        print(performance_df['shap_values'])
         return performance
 
 if __name__=='__main__':

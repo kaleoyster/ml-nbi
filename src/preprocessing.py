@@ -39,7 +39,6 @@ def create_labels(_df, label):
     """
     #TODO: Create a new definition for positive class and negative class
 
-    print('Using this function')
     #label = 'All intervention'
     label2 = 'No intervention'
     positive_class = _df[_df['cluster'].isin([label])]
@@ -235,7 +234,6 @@ def one_hot(_df, columns):
     return:
         columns: columns with one hot encoding
     """
-    print("\n Printing columns, one hot encoding:")
     map_dict = mapDict
     for column in columns:
         col_map = map_dict[column]

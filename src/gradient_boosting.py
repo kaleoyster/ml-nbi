@@ -62,6 +62,7 @@ def gradient_boosting_utility(train_x, trainy,
         model: Random Forest Model
     """
     #TODO: add column names to new dataframe
+    train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x)
     model = GradientBoostingClassifier(n_estimators=100,
                                        learning_rate=1.0,
@@ -101,14 +102,19 @@ def gradient_boosting_utility(train_x, trainy,
     #fig.savefig('grad_lime_report.jpg')
 
     ##model.fit(train_x, trainy)
-    g_exp = TreeExplainer(model)
-    g_sv = np.array(g_exp.shap_values(train_x))
-    g_ev = np.array(g_exp.expected_value)
+    #g_exp = TreeExplainer(model)
+    g_exp = shap.Explainer(model, train_x)
+    g_sv = g_exp(train_x, check_additivity=False)
+    g_sv = g_sv.values
+
+    #g_sv = np.array(g_exp.shap_values(train_x))
+    #g_ev = np.array(g_exp.expected_value)
 
     #print("Printing the sv values")
     #print(np.shape(g_sv))
 
     # Calculating mean shap values also known as SHAP feature importance
+    print("printing the g_sv values")
     mean_shap = np.mean(g_sv, axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
@@ -140,6 +146,7 @@ def gradient_boosting_utility(train_x, trainy,
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, g_sv, mean_shap_features
 
 def main():
+
     # States
     states = [
              # 'wisconsin_deep.csv',
@@ -167,7 +174,7 @@ def main():
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
 
-            # structure numbers
+            # Training 
             gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, gb_lime, gb_sv, mean_shap_features = gradient_boosting_utility(trainX,
                                                                                            trainy,
                                                      testX, testy, cols, max_depth=7)
@@ -197,6 +204,7 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print(performance_df['shap_values'])
     return performance
 
 if __name__ =='__main__':

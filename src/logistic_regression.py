@@ -68,14 +68,13 @@ def logistic_regression_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     ## SHAP
-    explainer = shap.Explainer(model, test_x)
-    shap_values = explainer(test_x)
-
+    explainer = shap.Explainer(model, train_x)
+    shap_values = explainer(train_x)
     int_shap = np.array(shap_values.values,
                         dtype=int)
 
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = np.mean(shap_values.values, axis=0)
+    mean_shap = np.mean(abs(shap_values.values), axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     #print("printing the shape of mean_shap")

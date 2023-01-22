@@ -171,7 +171,6 @@ def main():
                                                         ])
         temp_dfs.append(temp_df)
         performance_df = pd.concat(temp_dfs)
-        print(performance_df['shap_values'])
         return performance
 
 if __name__=='__main__':

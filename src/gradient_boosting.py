@@ -114,7 +114,6 @@ def gradient_boosting_utility(train_x, trainy,
     #print(np.shape(g_sv))
 
     # Calculating mean shap values also known as SHAP feature importance
-    print("printing the g_sv values")
     mean_shap = np.mean(g_sv, axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
@@ -204,7 +203,6 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df['shap_values'])
     return performance
 
 if __name__ =='__main__':

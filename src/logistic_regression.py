@@ -58,6 +58,9 @@ def logistic_regression_utility(train_x, trainy,
         kappa: Kappa Value
         model: Logistic Regression Model
     """
+    X_merged = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged, dtype='f')
+
     X_train = pd.DataFrame(train_x)
     model = LogisticRegression(random_state=0)
     model.fit(train_x, trainy)
@@ -68,7 +71,7 @@ def logistic_regression_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     ## SHAP
-    explainer = shap.Explainer(model, train_x)
+    explainer = shap.Explainer(model, X_merged)
     shap_values = explainer(train_x)
     int_shap = np.array(shap_values.values,
                         dtype=int)

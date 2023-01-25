@@ -64,6 +64,11 @@ def tree_utility(train_x, trainy,
         kappa: Kappa Value
         model: Decision Tree Model
     """
+
+    # Merging the train_x and test_x
+    X_merged = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged, dtype='f')
+
     # new dataframes
     train_x = np.array(train_x, dtype='f')
 
@@ -118,7 +123,8 @@ def tree_utility(train_x, trainy,
     #fig = instance_exp.as_pyplot_figure()
     #instance_exp.save_to_file('dt_lime_report.html')
 
-    dt_exp = shap.Explainer(model, train_x)
+    #TODO: use the entire X
+    dt_exp = shap.Explainer(model, X_merged)
     dt_sv = dt_exp(train_x)
     mean_shap = np.mean(abs(dt_sv.values), 0).mean(1)
 

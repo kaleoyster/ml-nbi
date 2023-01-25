@@ -60,6 +60,9 @@ def light_boost_utility(train_x, trainy,
         kappa: Kappa Value
         model: Light boost Model
     """
+    # Merging the train_x and test_x
+    X_merged = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged, dtype='f')
 
     train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x, columns=cols)
@@ -92,9 +95,9 @@ def light_boost_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     # SHAP
-    lg_exp = shap.Explainer(model, train_x)
-    lg_sv = lg_exp(train_x)
-    mean_shap = np.mean(abs(lg_sv.values), 0).mean(1)
+    lg_exp = shap.Explainer(model, X_merged)
+    lg_sv = lg_exp(train_x, check_additivity=False)
+    mean_shap = np.mean(abs(lg_sv.values), 0)
     # Calculating mean shap values also known as SHAP feature importance
     # Have for two classes
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
@@ -204,14 +207,14 @@ def main():
 
             # Create a dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
-                                                     'accuracy',
-                                                     'kappa',
-                                                     'auc',
-                                                     'fpr',
-                                                     'tpr',
-                                                     'confusion_matrix',
-                                                     'shap_values',
-                                                     'lime_val',
+                                                         'accuracy',
+                                                         'kappa',
+                                                         'auc',
+                                                         'fpr',
+                                                         'tpr',
+                                                         'confusion_matrix',
+                                                         'shap_values',
+                                                         'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)

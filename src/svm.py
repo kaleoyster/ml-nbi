@@ -22,6 +22,7 @@ from sklearn.model_selection import KFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from sklearn import svm
 
 # PDP
 from sklearn.inspection import PartialDependenceDisplay
@@ -67,6 +68,7 @@ def support_vector_utility(train_x, trainy,
         model: Support vector machine Model
     """
     # Training and testing data
+    train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x, columns=cols)
 
     # Model initialization
@@ -74,14 +76,18 @@ def support_vector_utility(train_x, trainy,
                           SVC(gamma='auto',
                               probability=True))
     # Fit model
+    #model = svm.SVC()
     model.fit(train_x, trainy)
     features = [0, 1]
 
     #PartialDependenceDisplay.from_estimator(model, train_x, features)
     #print("PartialDependenceDisplay Working OK")
 
-    data_sample = shap.sample(test_x, 20)
-    svm_exp = KernelExplainer(model=model.predict_proba, data=data_sample)
+    #data_sample = shap.sample(test_x, 20)
+    svm_exp = shap.Explainer(model, train_x)
+    svm_sv = svm_exp(train_x)
+    print("printing shap values")
+    #svm_sv = svm_exp(train_x)
 
     #print(svm_exp.shap_values(test_x))
 

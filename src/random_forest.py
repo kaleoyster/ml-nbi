@@ -61,6 +61,9 @@ def random_forest_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
+    X_merged = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged, dtype='f')
+
     # Training and testing model 
     X_train = pd.DataFrame(train_x)
     train_x = np.array(train_x, dtype='f')
@@ -104,11 +107,12 @@ def random_forest_utility(train_x, trainy,
     # fig = instance_exp.as_pyplot_figure()
     # fig.savefig('lime_report.jpg')
     #print(instance_exp)
-
+    # (11230, 49, 2)
+    # (2, 49, 11230)
     #rf_exp_lime.show_in_notebook(show_table=True)
 
     #Tree explainer -> The shap values are presented in the test_x
-    rf_exp = shap.Explainer(model, train_x)
+    rf_exp = shap.Explainer(model, X_merged)
     rf_sv = rf_exp(train_x, check_additivity=False)
     mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
 
@@ -202,7 +206,6 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df['shap_values'])
     return performance_df
 
 if __name__ =='__main__':

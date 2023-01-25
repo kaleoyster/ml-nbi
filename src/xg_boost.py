@@ -85,6 +85,10 @@ def xgb_utility(train_x, trainy,
         kappa: Kappa Value
         model: XGB boost Model
     """
+    # Merging the train_x and test_x
+    X_merged = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged, dtype='f')
+
     # Training and testing dataset
     train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x, columns=cols)
@@ -134,7 +138,7 @@ def xgb_utility(train_x, trainy,
     ##model.fit(train_x, trainy)
 
     # SHAP
-    xgb_exp = shap.Explainer(model, train_x)
+    xgb_exp = shap.Explainer(model, X_merged)
     xgb_sv = xgb_exp(train_x)
 
     # Calculating mean shap values also known as SHAP feature importance 

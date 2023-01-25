@@ -61,6 +61,9 @@ def gradient_boosting_utility(train_x, trainy,
         kappa: Kappa Value
         model: Random Forest Model
     """
+    X_merged = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged, dtype='f')
+
     #TODO: add column names to new dataframe
     train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x)
@@ -103,7 +106,7 @@ def gradient_boosting_utility(train_x, trainy,
 
     ##model.fit(train_x, trainy)
     #g_exp = TreeExplainer(model)
-    g_exp = shap.Explainer(model, train_x)
+    g_exp = shap.Explainer(model, X_merged)
     g_sv = g_exp(train_x, check_additivity=False)
     g_sv = g_sv.values
 

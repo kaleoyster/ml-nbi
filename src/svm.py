@@ -83,10 +83,15 @@ def support_vector_utility(train_x, trainy,
     #PartialDependenceDisplay.from_estimator(model, train_x, features)
     #print("PartialDependenceDisplay Working OK")
 
-    #data_sample = shap.sample(test_x, 20)
-    svm_exp = shap.Explainer(model, train_x)
-    svm_sv = svm_exp(train_x)
+    data_sample = shap.sample(test_x, 100)
+    svm_exp = shap.Explainer(model.predict_proba, data_sample)
+    #svm_sv = svm_exp(train_x)
+
     print("printing shap values")
+    #data_sample = shap.kmeans(test_x[:100], 100)
+    svm_exp = shap.KernelExplainer(model=model.predict_proba,
+                                   data=data_sample, link='logit')
+    #shap_values = svm_exp.shap_values(X=train_x, nsamples=100)
     #svm_sv = svm_exp(train_x)
 
     #print(svm_exp.shap_values(test_x))

@@ -227,13 +227,20 @@ def main():
     counter = 0
     dictionary_svm_shap = defaultdict()
     mean_values = []
+    # for each observartion
     for observation in svm_sv:
         mean_shap_ob_val = []
-        for ob in observation:
+
+        # For each feature there is the value.
+        for ob, feat in zip(observation, cols):
+            #print("Printing observation")
+            #print(feat)
+            #print(ob)
+
             mean_shap_o_v = np.mean(np.abs(ob.values))
             mean_shap_ob_val.append(mean_shap_o_v)
     mean_values.append(mean_shap_ob_val)
-
+    print(np.shape(mean_values))
         #counter = counter + 1
         #print(counter)
         #print(np.mean(np.abs(svm_feat.values), axis=1))

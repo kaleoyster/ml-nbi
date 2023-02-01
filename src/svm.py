@@ -91,11 +91,11 @@ def support_vector_utility(train_x, trainy,
 
 
     #data_sample = shap.kmeans(test_x[:100], 100)
-    data_sample = shap.sample(test_x, 5)
-    svm_exp = shap.KernelExplainer(model=model.predict_proba,
-                                   data=data_sample,
-                                   link='logit')
-    print(svm_exp)
+    #data_sample = shap.sample(test_x, 100)
+    #svm_exp = shap.KernelExplainer(model=model.predict_proba,
+    #                               data=data_sample,
+    #                               link='logit')
+    #print(svm_exp)
     #shap_values = svm_exp.shap_values(X=train_x, nsamples=100)
     #svm_sv = svm_exp(train_x)
 
@@ -103,12 +103,13 @@ def support_vector_utility(train_x, trainy,
 
     #svm_sv = np.array(svm_exp.shap_values(train_x))
     #print(svm_exp)
-    svm_ev = np.array(svm_exp.expected_value)
-    svm_sv = svm_exp.shap_values(train_x)
+
+    #svm_ev = np.array(svm_exp.expected_value)
+    #svm_sv = svm_exp.shap_values(train_x)
 
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = np.mean(svm_sv, axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    #mean_shap = np.mean(svm_sv, axis=0)
+    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
     ##svm_ev = svm_exp.expected_value
 
@@ -158,6 +159,7 @@ def support_vector_utility(train_x, trainy,
 
     instance_exp = []
     svm_sv = []
+    mean_shap_features = []
     return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, svm_sv, mean_shap_features
 
 def main():
@@ -216,6 +218,42 @@ def main():
                                                      'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
+    sample = np.array(X, dtype=float)
+    #data_sample = shap.sample(X, 10)
+    svm_exp = shap.Explainer(gmodel.predict_proba, sample)
+    svm_sv = svm_exp(sample[:5])
+
+    # Counter
+    counter = 0
+    dictionary_svm_shap = defaultdict()
+    mean_values = []
+    for observation in svm_sv:
+        mean_shap_ob_val = []
+        for ob in observation:
+            mean_shap_o_v = np.mean(np.abs(ob.values))
+            mean_shap_ob_val.append(mean_shap_o_v)
+    mean_values.append(mean_shap_ob_val)
+
+        #counter = counter + 1
+        #print(counter)
+        #print(np.mean(np.abs(svm_feat.values), axis=1))
+    #print(svm_sv)
+    svm_sv = np.array(svm_sv)
+
+    #print("After:")
+    #print(svm_sv)
+
+    #print("Shape of the SVM SV: ", np.shape(svm_sv))
+    #print("The type of the shape: ", type(svm_sv))
+
+    #mean_shap = np.mean(svm_sv, axis=0)
+    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    #print("printing the  mean_shap_features", mean_shap_features)
+
+    #print("printing shap values")
+    #print(svm_values)
+    #svm_sv = svm_exp(train_x)
+
     performance_df = pd.concat(temp_dfs)
     return performance_df
 

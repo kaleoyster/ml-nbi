@@ -187,6 +187,7 @@ def main():
         # K-fold cross validation
         kfold = KFold(5, shuffle=True, random_state=1)
 
+        gmodels = []
         # X is the dataset
         performance = defaultdict(list)
         for foldTrainX, foldTestX in kfold.split(X):
@@ -194,6 +195,7 @@ def main():
                                               X[foldTestX], y[foldTestX]
             # Training
             gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv, mean_shap_features = support_vector_utility(trainX, trainy, testX, testy, cols)
+            gmodels.append(gmodel)
 
         state_name = state[:-9]
         performance['accuracy'].append(gacc)
@@ -220,48 +222,25 @@ def main():
         temp_dfs.append(temp_df)
     sample = np.array(X, dtype=float)
     #data_sample = shap.sample(X, 10)
-    svm_exp = shap.Explainer(gmodel.predict_proba, sample)
-    svm_sv = svm_exp(sample[:5])
+    svm_exp = shap.Explainer(gmodels[1].predict_proba, sample)
+    svm_sv = svm_exp(sample)
 
     # Counter
-    counter = 0
-    dictionary_svm_shap = defaultdict()
-    mean_values = []
-    # for each observartion
+    temp_mean_values = []
+    # for each observartion:
     for observation in svm_sv:
         mean_shap_ob_val = []
-
-        # For each feature there is the value.
+        # For each feature there is the value:
         for ob, feat in zip(observation, cols):
-            #print("Printing observation")
-            #print(feat)
-            #print(ob)
-
             mean_shap_o_v = np.mean(np.abs(ob.values))
             mean_shap_ob_val.append(mean_shap_o_v)
-    mean_values.append(mean_shap_ob_val)
-    print(np.shape(mean_values))
-        #counter = counter + 1
-        #print(counter)
-        #print(np.mean(np.abs(svm_feat.values), axis=1))
-    #print(svm_sv)
-    svm_sv = np.array(svm_sv)
-
-    #print("After:")
-    #print(svm_sv)
-
-    #print("Shape of the SVM SV: ", np.shape(svm_sv))
-    #print("The type of the shape: ", type(svm_sv))
-
-    #mean_shap = np.mean(svm_sv, axis=0)
-    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-    #print("printing the  mean_shap_features", mean_shap_features)
-
-    #print("printing shap values")
-    #print(svm_values)
-    #svm_sv = svm_exp(train_x)
-
+        temp_mean_values.append(mean_shap_ob_val)
+    #print(np.shape(mean_shap_ob_val))
+    mean_values = np.mean(temp_mean_values, axis=0)
+    dictionary_svm_shap = dict(zip(cols, mean_values))
     performance_df = pd.concat(temp_dfs)
+    shap_series = pd.Series(dictionary_svm_shap)
+    shap_series.to_csv("svm_shap_1.csv")
     return performance_df
 
 if __name__ == '__main__':

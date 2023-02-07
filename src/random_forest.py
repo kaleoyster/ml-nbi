@@ -59,6 +59,9 @@ def random_forest_utility(train_x, trainy,
         cm: Confusion Report
         cr: Classification Report
         kappa: Kappa Value
+        fpr: false positive rate
+        tpr: true positive rate
+        mean_shap_features: shapley values
         model: Random Forest Model
     """
     X_merged = np.concatenate((train_x, test_x))
@@ -67,7 +70,6 @@ def random_forest_utility(train_x, trainy,
     # Training and testing model 
     X_train = pd.DataFrame(train_x)
     train_x = np.array(train_x, dtype='f')
-    #y_train = pd.DataFrame(trainy, columns=['class'])
 
     # Initialize model
     model = RandomForestClassifier(max_depth=max_depth,
@@ -75,7 +77,6 @@ def random_forest_utility(train_x, trainy,
     # Fit model
     model.fit(X_train, trainy)
 
-    #model.fit(train_x, trainy)
     # p_imp = permutation_importance(model,
     #                                test_x,
     #                                testy,
@@ -106,27 +107,21 @@ def random_forest_utility(train_x, trainy,
 
     # fig = instance_exp.as_pyplot_figure()
     # fig.savefig('lime_report.jpg')
-    #print(instance_exp)
-    # (11230, 49, 2)
-    # (2, 49, 11230)
     #rf_exp_lime.show_in_notebook(show_table=True)
 
-    #Tree explainer -> The shap values are presented in the test_x
+    # SHAP explainer
     rf_exp = shap.Explainer(model, X_merged)
-    rf_sv = rf_exp(train_x, check_additivity=False)
+    rf_sv = rf_exp(X_merged, check_additivity=False)
     mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
-
-    #rf_sv = np.array(rf_exp.shap_values(train_x))
-    #rf_ev = np.array(rf_exp.expected_value)
 
     # Calculating mean shap values also known as SHAP feature importance
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-    #summary_plot(rf_sv[0], test_x, feature_names=cols)
-    #summary_plot(rf_sv, train_x, feature_names=cols)
 
     # Predictions
     prediction = model.predict(test_x)
     prediction_prob = model.predict_proba(test_x)[::, 1]
+
+    # Computing metrics
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
@@ -137,32 +132,17 @@ def random_forest_utility(train_x, trainy,
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
     _auc = auc(fpr, tpr)
-    #print("Printing area under curve")
-    #print(_auc)
 
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    instance_exp = []
-    rf_sv = []
-    return acc, _cm, _cr, kappa, _auc, fpr, tpr, model, _fi, instance_exp, rf_sv, mean_shap_features
+
+    return acc, _cm, _cr, kappa, _auc, fpr, tpr, model, _fi, mean_shap_features
 
 def main():
 
     # States
-    states = [
-              #'wisconsin_deep.csv',
-              #'colorado_deep.csv',
-              #'illinois_deep.csv',
-              #'indiana_deep.csv',
-              #'iowa_deep.csv',
-              #'minnesota_deep.csv',
-              #'missouri_deep.csv',
-              #'ohio_deep.csv',
-              'nebraska_deep.csv',
-              #'indiana_deep.csv',
-              #'kansas_deep.csv',
-             ]
+    states = ['nebraska_deep.csv']
 
     temp_dfs = list()
     for state in states:
@@ -178,7 +158,7 @@ def main():
 
 
             # Training
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, rf_lime, rf_sv, mean_shap_features = random_forest_utility(trainX, trainy,
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, mean_shap_features = random_forest_utility(trainX, trainy,
                      testX, testy, cols, max_depth=10)
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -191,7 +171,6 @@ def main():
             performance['classification_report'].append(gcr)
             performance['feature_importance'].append(fi)
             performance['shap_values'].append(mean_shap_features)
-            performance['lime_val'].append(rf_lime)
 
             # Create a temp dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
@@ -202,7 +181,6 @@ def main():
                                                      'tpr',
                                                      'confusion_matrix',
                                                      'shap_values',
-                                                     'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)

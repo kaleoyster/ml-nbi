@@ -96,15 +96,6 @@ def xgb_utility(train_x, trainy,
 
     #model = XGBRegressor(objective='reg:squarederror')
     model =  xgb.XGBClassifier()
-
-    #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
-    # dtrain = model.DMatrix(train_x, label=train_y)
-    # watchlist = [(dtrain, 'train')]
-    # param = {'max_depth': 6, 'learning_rate': 0.03}
-    # num_round = 200
-    # bst = model.train(param, dtrain, num_round, watchlist)
-
-    # model.fit(train_x, trainy)
     model.fit(train_x, trainy,
               eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
@@ -123,23 +114,16 @@ def xgb_utility(train_x, trainy,
 
     #lg_exp = TreeExplainer(model)
 
-    ##model.fit(X_train, y_train)
-    ##print(Counter(trainy))
-    ##importance_type = ['weight', 'gain', 'cover', 'total_gain', 'total_cover']
-    #print("printing feature importance")
+    #importance_type = ['weight', 'gain', 'cover', 'total_gain', 'total_cover']
     #_fi = model.get_booster().get_score(importance_type='gain')
     #_fn = model.get_booster().feature_names
-    #print(len(_fi))
-    #print(_fn)
 
     ##print(model.feature_importances_)
     #plot_importance(model)
-    ##pyplot.show()
-    ##model.fit(train_x, trainy)
 
     # SHAP
     xgb_exp = shap.Explainer(model, X_merged)
-    xgb_sv = xgb_exp(train_x)
+    xgb_sv = xgb_exp(X_merged, check_additivity=False)
 
     # Calculating mean shap values also known as SHAP feature importance 
     # Shape = (11360, 49)
@@ -169,12 +153,11 @@ def xgb_utility(train_x, trainy,
     ##print("Shape of the XGB Shap values:", xgb_sv.shape)
     #summary_plot(xgb_sv, train_x, feature_names=cols)
 
-    #Predictions
+    # Predictions
     prediction = model.predict(test_x)
     prediction_prob = model.predict_proba(test_x)[::, 1]
-    #b_prediction = convert_prediction_to_binary(prediction)
 
-    #_mse = mean_squared_error(prediction, testy)
+    # Computing metrics
     _acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy,
@@ -183,34 +166,13 @@ def xgb_utility(train_x, trainy,
 
     fpr, tpr, threshold = roc_curve(testy, prediction_prob)
     _auc = auc(fpr, tpr)
-    #print("Printing area under curve")
-    #print(_auc)
-
-    #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    #fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
-    #_auc = auc(fpr, tpr)
-
-    instance_exp = []
-    xgb_sv = []
-    return _acc, _cm, _cr, _kappa, _auc, fpr, tpr, instance_exp, xgb_sv, mean_shap_features
+    return _acc, _cm, _cr, _kappa, _auc, fpr, tpr, mean_shap_features
 
 def main():
     # States
-    states = [
-              #'wisconsin_deep.csv',
-              #'colorado_deep.csv',
-              #'illinois_deep.csv',
-              #'indiana_deep.csv',
-              #'iowa_deep.csv',
-              #'minnesota_deep.csv',
-              #'missouri_deep.csv',
-              #'ohio_deep.csv',
-              'nebraska_deep.csv',
-              #'indiana_deep.csv',
-              #'kansas_deep.csv',
-             ]
+    states = ['nebraska_deep.csv']
 
     temp_dfs = list()
     for state in states:
@@ -238,7 +200,7 @@ def main():
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
             # Training
-            acc, cm, cr, kappa, auc, fpr, tpr, xgb_lime, xgb_sv, mean_shap_features = xgb_utility(trainX, trainy, testX, testy, cols)
+            acc, cm, cr, kappa, auc, fpr, tpr, mean_shap_features = xgb_utility(trainX, trainy, testX, testy, cols)
 
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -250,7 +212,6 @@ def main():
             performance['confusion_matrix'].append(cm)
             performance['classification_report'].append(cr)
             performance['shap_values'].append(mean_shap_features)
-            performance['lime_val'].append(xgb_lime)
 
             # Create a temp dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
@@ -261,10 +222,10 @@ def main():
                                                         'tpr',
                                                         'confusion_matrix',
                                                         'shap_values',
-                                                        'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print("printing performance_df", performance_df)
     return performance_df
 
 if __name__ =='__main__':

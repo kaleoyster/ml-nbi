@@ -182,7 +182,7 @@ def main():
     model_no = 1
 
     # Select all data from X
-    X = np.array(X[:3], dtype=float)
+    X = np.array(X, dtype=float)
     svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
     svm_sv = svm_exp(X)
 
@@ -209,7 +209,7 @@ def main():
 
     # Export SHAP Feature
     shap_series = pd.Series(dictionary_svm_shap)
-    shap_series.to_csv("svm_shap_1.csv")
+    shap_series.to_csv("svm_shap_deck.csv")
 
     return performance_df
 

@@ -37,9 +37,6 @@ def create_labels(_df, label):
         df (dataframe): a dataframe with additional
         attributes
     """
-    #TODO: Create a new definition for positive class and negative class
-
-    #label = 'All intervention'
     label2 = 'No intervention'
     positive_class = _df[_df['cluster'].isin([label])]
     negative_class = _df[_df['cluster'].isin([label2])]
@@ -101,16 +98,12 @@ def provide_label(sub, deck, sup):
         if is_zero(value):
             label = 'No ' + componentDict[num]
         elif is_low(value):
-            #label = 'Low ' + componentDict[num]
             label = 'Yes ' + componentDict[num]
         elif is_negative(value):
-            #label = 'No ' + componentDict[num]
             label = 'Yes ' + componentDict[num]
         elif is_medium(value):
-            #label = 'Medium ' + componentDict[num]
             label = 'No ' + componentDict[num]
         elif is_high(value):
-            #label = 'High ' + componentDict[num]
             label = 'Yes ' + componentDict[num]
         else:
             label = 'Error ' + componentDict[num]
@@ -141,8 +134,6 @@ def semantic_labeling(features, name=""):
        Assign a semantic label
     """
     labels = list()
-    # printng structure numbers for High substructure
-    #print("\nPrinting structure numbers for high substructure")
     for index, record in features.iterrows():
         subInt = record['subNumberIntervention']
         deckInt = record['deckNumberIntervention']
@@ -153,12 +144,6 @@ def semantic_labeling(features, name=""):
                                           supInt])
         if type(label) is type(list()):
             label = ' - '.join(label)
-            # TODO: 
-                # Print out structure numbers with High substructure
-            #if label == 'High Substructure - No Deck - No Superstructure':
-                #print("\n")
-                #print(label)
-                #print(record)
         labels.append(label)
     return labels
 
@@ -484,8 +469,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
               'No Substructure - No Deck - Yes Superstructure']
 
 
-    #label = 'No Substructure - Yes Deck - No Superstructure'
-    label = 'No Substructure - No Deck - Yes Superstructure'
+    label = 'No Substructure - Yes Deck - No Superstructure'
+    #label = 'Yes Substructure - No Deck - No Superstructure'
+    #label = 'No Substructure - No Deck - Yes Superstructure'
 
     data_scaled = create_labels(data_scaled, label)
     clusters = Counter(data_scaled['label'])

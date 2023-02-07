@@ -59,12 +59,14 @@ def gradient_boosting_utility(train_x, trainy,
         cm: Confusion Report
         cr: Classification Report
         kappa: Kappa Value
+        fpr: False positive rate
+        tpr: True positive rate
+        mean_shap_features: Shapley values for each features
         model: Random Forest Model
     """
     X_merged = np.concatenate((train_x, test_x))
     X_merged = np.array(X_merged, dtype='f')
 
-    #TODO: add column names to new dataframe
     train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x)
     model = GradientBoostingClassifier(n_estimators=100,
@@ -104,28 +106,19 @@ def gradient_boosting_utility(train_x, trainy,
     #fig = instance_exp.as_pyplot_figure()
     #fig.savefig('grad_lime_report.jpg')
 
-    ##model.fit(train_x, trainy)
-    #g_exp = TreeExplainer(model)
+    # Compute SHAP
     g_exp = shap.Explainer(model, X_merged)
-    g_sv = g_exp(train_x, check_additivity=False)
+    g_sv = g_exp(X_merged, check_additivity=False)
     g_sv = g_sv.values
-
-    #g_sv = np.array(g_exp.shap_values(train_x))
-    #g_ev = np.array(g_exp.expected_value)
-
-    #print("Printing the sv values")
-    #print(np.shape(g_sv))
 
     # Calculating mean shap values also known as SHAP feature importance
     mean_shap = np.mean(g_sv, axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
 
-    #g_sv = g_exp.shap_values(train_x)
-    #g_ev = g_exp.expected_value
-    #summary_plot(g_sv, train_x, feature_names=cols)
-
     prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
+
+    # Compute metrics
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
@@ -136,33 +129,15 @@ def gradient_boosting_utility(train_x, trainy,
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
     _auc = auc(fpr, tpr)
-    #print("Printing area under curve")
-    #print(_auc)
-
     _fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    instance_exp = []
-    g_sv = []
-
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, g_sv, mean_shap_features
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, mean_shap_features
 
 def main():
 
     # States
-    states = [
-             # 'wisconsin_deep.csv',
-             # 'colorado_deep.csv',
-             # 'illinois_deep.csv',
-             # 'indiana_deep.csv',
-             # 'iowa_deep.csv',
-             # 'minnesota_deep.csv',
-             # 'missouri_deep.csv',
-             # 'ohio_deep.csv',
-              'nebraska_deep.csv',
-             # 'indiana_deep.csv',
-             # 'kansas_deep.csv',
-             ]
+    states = ['nebraska_deep.csv']
 
     temp_dfs = list()
     for state in states:
@@ -177,7 +152,7 @@ def main():
                                               X[foldTestX], y[foldTestX]
 
             # Training 
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, gb_lime, gb_sv, mean_shap_features = gradient_boosting_utility(trainX,
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, mean_shap_features = gradient_boosting_utility(trainX,
                                                                                            trainy,
                                                      testX, testy, cols, max_depth=7)
             state_name = state[:-9]
@@ -191,18 +166,16 @@ def main():
             performance['classification_report'].append(gcr)
             performance['feature_importance'].append(fi)
             performance['shap_values'].append(mean_shap_features)
-            performance['lime_val'].append(gb_lime)
 
             # Create a dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
-                                                     'accuracy',
-                                                     'kappa',
-                                                     'auc',
-                                                     'fpr',
-                                                     'tpr',
-                                                     'confusion_matrix',
-                                                     'shap_values',
-                                                     'lime_val',
+                                                         'accuracy',
+                                                         'kappa',
+                                                         'auc',
+                                                         'fpr',
+                                                         'tpr',
+                                                         'confusion_matrix',
+                                                         'shap_values',
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)

@@ -46,10 +46,10 @@ from preprocessing import *
 
 def tree_utility(train_x, trainy,
                  test_x, testy, cols,
-                 criteria='entropy', max_depth=15):
+                 criteria='entropy', max_depth=30):
     """
     Description:
-        Performs the modeling and returns performance metrics
+        Performs decision tree modeling and returns performance metrics
 
     Args:
         trainX: Features of Training Set
@@ -66,31 +66,30 @@ def tree_utility(train_x, trainy,
     """
 
     # Merging the train_x and test_x
-    X_merged = np.concatenate((train_x, test_x))
-    X_merged = np.array(X_merged, dtype='f')
+    X_merged_integer = np.concatenate((train_x, test_x))
+    X_merged = np.array(X_merged_integer, dtype='f')
 
-    # new dataframes
+    # Float Conversion for the model (numpy array)
     train_x = np.array(train_x, dtype='f')
 
+    # X_train (Dataframe)
     X_train = pd.DataFrame(train_x)
+
+    # Initialize model
     model = DecisionTreeClassifier(criterion=criteria, max_depth=max_depth)
     cv = KFold(n_splits=5, shuffle=False)
+
+    # Fit model
+    model.fit(X_train, trainy)
 
     #lofo_importance = LOFOImportance(X_train,
     #                                 cv=cv,
     #                                 scoring='roc_auc',
     #                                 model=model)
-    ##print(lofo_importance.get_importance)
-    ## Get the mean and standard deviation of the importances in pandas format
-    ## Fix this error
-    ##importance_df = lofo_importance.get_importance()
+    #importance_df = lofo_importance.get_importance()
 
-    ## plot the means and standard deviations of the importances
-    ##plot_importance(importance_df, figsize=(12, 20))
-
-    # Fit model
-    model.fit(X_train, trainy)
-    ##model.fit(train_x, trainy)
+    # plot the means and standard deviations of the importances
+    #plot_importance(importance_df, figsize=(12, 20))
 
     ## Permutation mean of the feature importance
     #p_imp = permutation_importance(model,
@@ -123,24 +122,20 @@ def tree_utility(train_x, trainy,
     #fig = instance_exp.as_pyplot_figure()
     #instance_exp.save_to_file('dt_lime_report.html')
 
-    #TODO: use the entire X
+    # Computing SHAP values
     dt_exp = shap.Explainer(model, X_merged)
-    dt_sv = dt_exp(train_x)
+    dt_sv = dt_exp(X_merged_integer)
     mean_shap = np.mean(abs(dt_sv.values), 0).mean(1)
 
     # Calculating mean shap values also known as SHAP feature importance
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-
-    #print("Shape of the RF values:", dt_sv[0])
-    #print("Shape of the Light boost Shap Values")
-    #summary_plot(dt_sv, train_x, feature_names=cols)
-
     prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
     acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
 
+    # Define classes
     class_label = {
                     'negative':0,
                     'positive':1
@@ -149,31 +144,21 @@ def tree_utility(train_x, trainy,
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
 
-    #print(testy_num[:100])
-    #print(prediction_prob[:100])
-
-    #print("Checking dimensions")
-    #print(np.shape(testy_num), np.shape(prediction_prob))
-    #print(np.shape(fpr), np.shape(tpr))
-    #print("printing fpr and tpr")
-    #print(fpr, tpr)
+    # Compute AUC
     _auc = auc(fpr, tpr)
-    #print("printing auc", _auc)
+
+    # Compute feature importance
     _fi = dict(zip(cols, model.feature_importances_))
+
+    # Compute Kappa
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    #fpr, tpr, threshold = roc_curve(testy, prediction, pos_label=2)
-    #_auc = metrics.auc(fpr, tpr)
-    instance_exp = []
-    dt_sv = []
 
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, instance_exp, dt_sv, mean_shap_features
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, _fi, mean_shap_features
 
 # Decision Tree
 def decision_tree(X, y, features, label, all_data, nFold=5):
     """
-    #TODO: We can do things together.
-    def decision_tree(X, y, features, label, nFold=5):
     Description:
         Performs training-testing split
         Train model for various depth level
@@ -210,13 +195,7 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     X = np.array(X)
     y = np.array(y)
 
-    # Converting all data into array
-    #all_sub_data =  all_data[cols]
-    #structure_numbers = all_data['structureNumber']
-    #all_sub_data = np.array(X)
-    #structure_numbers = np.array(structure_numbers)
-
-    # Store models:
+    # Store models
     eModels = []
     gModels = []
 
@@ -259,14 +238,11 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
         classReportsEntropy.append(ecr)
         classReportsGini.append(gcr)
 
-        # Kappa Values (TODO: select average of Kappa Value)
+        # Kappa Values 
         eKappaValues.append(ekappa)
         gKappaValues.append(gkappa)
 
-        # ROC AUC values(TODO: select average of Kappa Value)
-        #eRocs.append(eroc)
-        #gRocs.append(groc)
-
+        # ROC AUC values
         # Models
         eModels.append(emodel)
         gModels.append(gmodel)
@@ -295,10 +271,6 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
     eScoreDict = dict(zip(scoresEntropy, depths))
     gScoreDict = dict(zip(scoresGini, depths))
 
-    #TODO:  Scores (ROCs) doesn't work
-    #eRocsDict = dict(zip(eRocs, depths))
-    #gRocsDict = dict(zip(gRocs, depths))
-
     # Models
     eModelsDict = dict(zip(depths, eModels))
     gModelsDict = dict(zip(depths, gModels))
@@ -312,35 +284,21 @@ def decision_tree(X, y, features, label, all_data, nFold=5):
                                            eConfDict, gConfDict,
                                            eClassDict, gClassDict,
                                            eScoreDict, gScoreDict,
-                                           #eRocsDict, gRocsDict,
                                            eModelsDict, gModelsDict,
                                            eFeatureDict, gFeatureDict,
                                            testX, cols, label, all_data)
 
     # Return the average kappa value for state
     eBestModel, gBestModel = models
-    #leaves = find_leaves(eBestModel)
-    #splitNodes = print_split_nodes(leaves, eBestModel, features)
 
     return kappaVals, accVals, featImps, models
 
 def main():
 
     # States
-    states = [
-              #'wisconsin_deep.csv',
-              #'colorado_deep.csv',
-              #'illinois_deep.csv',
-              #'indiana_deep.csv',
-              #'iowa_deep.csv',
-              #'minnesota_deep.csv',
-              #'missouri_deep.csv',
-              #'ohio_deep.csv',
-              'nebraska_deep.csv',
-              #'indiana_deep.csv',
-              #'kansas_deep.csv',
-             ]
+    states = ['nebraska_deep.csv']
 
+    # Loop through all states
     temp_dfs = list()
     for state in states:
         state_file = '../data/' + state
@@ -348,13 +306,14 @@ def main():
         kfold = KFold(5, shuffle=True, random_state=1)
 
         # X is the dataset
+        # Loop through 5 times (K=5)
         performance = defaultdict(list)
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
 
-            # Entropy
-            acc, cm, cr, kappa, auc, fpr, tpr, model, fi, dt_lime, dt_sv, mean_shap_features = tree_utility(trainX, trainy,
+            # Entropy model
+            acc, cm, cr, kappa, auc, fpr, tpr, model, fi, mean_shap_features = tree_utility(trainX, trainy,
                                                      testX, testy, cols,
                                                      criteria='entropy',
                                                      max_depth=30)
@@ -369,20 +328,21 @@ def main():
             performance['classification_report'].append(cr)
             performance['feature_importance'].append(fi)
             performance['shap_values'].append(mean_shap_features)
-            performance['lime_val'].append(dt_lime)
 
-            # Create a dataframe
+            # Create a dataframe for all the perfomance metric
             temp_df = pd.DataFrame(performance, columns=['state',
-                                                     'accuracy',
-                                                     'kappa',
-                                                     'auc',
-                                                     'fpr',
-                                                     'tpr',
-                                                     'confusion_matrix',
-                                                     'shap_values',
-                                                     'lime_val',
-                                                    ])
+                                                         'accuracy',
+                                                         'kappa',
+                                                         'auc',
+                                                         'fpr',
+                                                         'tpr',
+                                                         'confusion_matrix',
+                                                         'shap_values',
+                                                        ])
+        # Concatenate all dataframes together
         temp_dfs.append(temp_df)
+
+    # Performance dataframe
     performance_df = pd.concat(temp_dfs)
     return performance_df
 

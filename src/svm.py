@@ -11,8 +11,6 @@ import sys
 import csv
 import pandas as pd
 import numpy as np
-from sklearn import tree
-from sklearn.tree import export_graphviz
 from collections import defaultdict
 from tqdm import tqdm
 import pydotplus
@@ -52,7 +50,7 @@ def support_vector_utility(train_x, trainy,
                  test_x, testy, cols):
     """
     Description:
-        Performs the modeling and returns performance metrics
+        Performs SVM the modeling and returns performance metrics
 
     Args:
         trainX: Features of Training Set
@@ -76,42 +74,8 @@ def support_vector_utility(train_x, trainy,
                           SVC(gamma='auto',
                               probability=True))
     # Fit model
-    #model = svm.SVC()
     model.fit(train_x, trainy)
     features = [0, 1]
-
-    #PartialDependenceDisplay.from_estimator(model, train_x, features)
-    #print("PartialDependenceDisplay Working OK")
-
-    #data_sample = shap.sample(test_x, 20)
-    #svm_exp = shap.Explainer(model.predict_proba, data_sample)
-    #print("printing shap values")
-    #print(svm_exp)
-    #svm_sv = svm_exp(train_x)
-
-
-    #data_sample = shap.kmeans(test_x[:100], 100)
-    #data_sample = shap.sample(test_x, 100)
-    #svm_exp = shap.KernelExplainer(model=model.predict_proba,
-    #                               data=data_sample,
-    #                               link='logit')
-    #print(svm_exp)
-    #shap_values = svm_exp.shap_values(X=train_x, nsamples=100)
-    #svm_sv = svm_exp(train_x)
-
-    #print(svm_exp.shap_values(test_x))
-
-    #svm_sv = np.array(svm_exp.shap_values(train_x))
-    #print(svm_exp)
-
-    #svm_ev = np.array(svm_exp.expected_value)
-    #svm_sv = svm_exp.shap_values(train_x)
-
-    # Calculating mean shap values also known as SHAP feature importance
-    #mean_shap = np.mean(svm_sv, axis=0)
-    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-
-    ##svm_ev = svm_exp.expected_value
 
     ## Partial dependency
     #features = [0, 1]
@@ -126,7 +90,7 @@ def support_vector_utility(train_x, trainy,
     #    mode='classification'
     #)
 
-    ### Explaining the instances using LIME
+    ## Explaining the instances using LIME
     #instance_exp = svm_exp_lime.explain_instance(
     #    data_row = X_train.values[4],
     #    predict_fn = model.predict_proba
@@ -134,7 +98,6 @@ def support_vector_utility(train_x, trainy,
 
     #fig = instance_exp.as_pyplot_figure()
     #fig.savefig('svm_lime_report.jpg')
-
     #summary_plot(svm_sv, train_x, feature_names=cols)
 
     prediction = model.predict(test_x)
@@ -149,18 +112,10 @@ def support_vector_utility(train_x, trainy,
     testy_num = [class_label[i] for i in testy]
     fpr, tpr, threshold = roc_curve(testy_num, prediction_prob)
     _auc = auc(fpr, tpr)
-    #print("Printing area under curve")
-    #print(_auc)
-
-    #_fi = dict(zip(cols, model.feature_importances_))
     _kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
-    #_auc = auc(fpr, tpr)
 
-    instance_exp = []
-    svm_sv = []
-    mean_shap_features = []
-    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model, instance_exp, svm_sv, mean_shap_features
+    return acc, _cm, _cr, _kappa, _auc, fpr, tpr, model
 
 def main():
 
@@ -187,14 +142,18 @@ def main():
         # K-fold cross validation
         kfold = KFold(5, shuffle=True, random_state=1)
 
+        # Contains all models
         gmodels = []
+
         # X is the dataset
         performance = defaultdict(list)
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
             # Training
-            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, svm_lime, svm_sv, mean_shap_features = support_vector_utility(trainX, trainy, testX, testy, cols)
+            gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel = support_vector_utility(trainX, trainy, testX, testy, cols)
+
+            # Appending all models
             gmodels.append(gmodel)
 
         state_name = state[:-9]
@@ -205,8 +164,6 @@ def main():
         performance['tpr'].append(gtpr)
         performance['confusion_matrix'].append(gcr)
         performance['classification_report'].append(gcr)
-        performance['shap_values'].append(mean_shap_features)
-        performance['lime_val'].append(svm_lime)
 
         # Create a temp dataframe
         temp_df = pd.DataFrame(performance, columns=['state',
@@ -220,13 +177,18 @@ def main():
                                                      'lime_val',
                                                     ])
         temp_dfs.append(temp_df)
-    sample = np.array(X, dtype=float)
-    #data_sample = shap.sample(X, 10)
-    svm_exp = shap.Explainer(gmodels[1].predict_proba, sample)
-    svm_sv = svm_exp(sample)
+
+    # Using SHAP explainer & Select model number
+    model_no = 1
+
+    # Select all data from X
+    X = np.array(X[:3], dtype=float)
+    svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
+    svm_sv = svm_exp(X)
 
     # Counter
     temp_mean_values = []
+
     # for each observartion:
     for observation in svm_sv:
         mean_shap_ob_val = []
@@ -235,12 +197,20 @@ def main():
             mean_shap_o_v = np.mean(np.abs(ob.values))
             mean_shap_ob_val.append(mean_shap_o_v)
         temp_mean_values.append(mean_shap_ob_val)
-    #print(np.shape(mean_shap_ob_val))
+
+    # Averaging shap values across all the observation
     mean_values = np.mean(temp_mean_values, axis=0)
+
+    # Dicitionary
     dictionary_svm_shap = dict(zip(cols, mean_values))
+
+    # Concatenate all models together 
     performance_df = pd.concat(temp_dfs)
+
+    # Export SHAP Feature
     shap_series = pd.Series(dictionary_svm_shap)
     shap_series.to_csv("svm_shap_1.csv")
+
     return performance_df
 
 if __name__ == '__main__':

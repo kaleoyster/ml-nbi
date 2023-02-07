@@ -58,6 +58,9 @@ def light_boost_utility(train_x, trainy,
         cm: Confusion Report
         cr: Classification Report
         kappa: Kappa Value
+        fpr: False positive rate
+        tpr: True positive rate
+        mean_shap_features: Shap values
         model: Light boost Model
     """
     # Merging the train_x and test_x
@@ -67,18 +70,12 @@ def light_boost_utility(train_x, trainy,
     train_x = np.array(train_x, dtype='f')
     X_train = pd.DataFrame(train_x, columns=cols)
     model = lgb.LGBMClassifier(learning_rate=0.09, max_depth=-5, random_state=42)
-    #cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 
+    # Model Fit 
     model.fit(train_x, trainy,
               eval_set=[(test_x, testy), (train_x, trainy)],
               verbose=20, eval_metric='logloss')
 
-    #print("printing feature importance")
-    #_fi = model.feature_importances_
-    #_fn = model.feature_names
-    #print(_fi)
-    #print(len(cols))
-    #print(_fn)
     # Permutation mean of the feature importance
     #p_imp = permutation_importance(model,
     #                               test_x,
@@ -96,8 +93,9 @@ def light_boost_utility(train_x, trainy,
 
     # SHAP
     lg_exp = shap.Explainer(model, X_merged)
-    lg_sv = lg_exp(train_x, check_additivity=False)
+    lg_sv = lg_exp(X_merged, check_additivity=False)
     mean_shap = np.mean(abs(lg_sv.values), 0)
+
     # Calculating mean shap values also known as SHAP feature importance
     # Have for two classes
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
@@ -110,7 +108,7 @@ def light_boost_utility(train_x, trainy,
         mode='regression'
     )
 
-    ## Explaining the instances using LIME
+    # Explaining the instances using LIME:
     instance_exp = lg_exp_lime.explain_instance(
         data_row = X_train.values[4],
         predict_fn = model.predict
@@ -119,53 +117,27 @@ def light_boost_utility(train_x, trainy,
     #fig = instance_exp.as_pyplot_figure()
     #fig.savefig('lg_lime_report.jpg')
 
-    #print("Shape of the RF values:", lg_sv[0])
-    #print("Shape of the Light boost Shap Values")
-
     #summary_plot(lg_sv, train_x, feature_names=cols)
     #shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :])
 
-    #shap.plots.waterfall(lg_sv[0])
-    #testing_accuracy = modelX_test.score(test_x, testy)
+    # Computing metrics
     prediction_prob = model.predict_proba(test_x)[::, 1]
     prediction = model.predict(test_x)
     _acc = accuracy_score(testy, prediction)
     _cm = confusion_matrix(testy, prediction)
     _cr = classification_report(testy, prediction, zero_division=0)
     fpr, tpr, threshold = roc_curve(testy, prediction_prob)
-
-    #print("printing fpr and tpr", fpr, tpr)
     _auc = auc(fpr, tpr)
-    #print("Printing area under curve")
-    #print(_auc)
-
     _fi = dict(zip(cols, model.feature_importances_))
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
 
-    #fpr, tpr, threshold = metrics.roc_curve(testy, prediction, pos_label=2)
-    #_auc = metrics.auc(fpr, tpr)
-    #print("printing auc", _auc)
-    instance_exp = []
-    lg_sv = []
-    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, instance_exp, lg_sv, mean_shap_features
+    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, mean_shap_features
 
 def main():
 
     # States
-    states = [
-              #'wisconsin_deep.csv',
-              #'colorado_deep.csv',
-              #'illinois_deep.csv',
-              #'indiana_deep.csv',
-              #'iowa_deep.csv',
-              #'minnesota_deep.csv',
-              #'missouri_deep.csv',
-              #'ohio_deep.csv',
-              'nebraska_deep.csv',
-              #'indiana_deep.csv',
-              #'kansas_deep.csv',
-             ]
+    states = ['nebraska_deep.csv']
 
     temp_dfs = list()
     for state in states:
@@ -186,12 +158,13 @@ def main():
         kfold = KFold(5, shuffle=True, random_state=1)
 
         # X is the dataset
+        # Loop through 5 times (K = 5)
         performance = defaultdict(list)
         for foldTrainX, foldTestX in kfold.split(X):
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
             # Training 
-            acc, cm, cr, kappa, auc, fpr, tpr, lg_lime, lg_sv, mean_shap_features = light_boost_utility(trainX, trainy, testX, testy, cols)
+            acc, cm, cr, kappa, auc, fpr, tpr, mean_shap_features = light_boost_utility(trainX, trainy, testX, testy, cols)
 
             state_name = state[:-9]
             performance['state'].append(state_name)
@@ -203,7 +176,6 @@ def main():
             performance['confusion_matrix'].append(cm)
             performance['classification_report'].append(cr)
             performance['shap_values'].append(mean_shap_features)
-            performance['lime_val'].append(lg_lime)
 
             # Create a dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
@@ -214,8 +186,7 @@ def main():
                                                          'tpr',
                                                          'confusion_matrix',
                                                          'shap_values',
-                                                         'lime_val',
-                                                    ])
+                                                       ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
     return performance_df

@@ -124,7 +124,7 @@ def tree_utility(train_x, trainy,
 
     # Computing SHAP values
     dt_exp = shap.Explainer(model, X_merged)
-    dt_sv = dt_exp(X_merged_integer)
+    dt_sv = dt_exp(X_merged, check_additivity=False)
     mean_shap = np.mean(abs(dt_sv.values), 0).mean(1)
 
     # Calculating mean shap values also known as SHAP feature importance

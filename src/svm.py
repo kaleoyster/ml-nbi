@@ -62,8 +62,10 @@ def support_vector_utility(train_x, trainy,
         acc: Accuracy
         cm: Confusion Report
         cr: Classification Report
-        kappa: Kappa Value
-        model: Support vector machine Model
+        kappa: Inter-rater measurement
+        tpr: True positive rate
+        fpr: False positive rate
+        model: Support vector machine model
     """
     # Training and testing data
     train_x = np.array(train_x, dtype='f')
@@ -120,19 +122,7 @@ def support_vector_utility(train_x, trainy,
 def main():
 
     # States
-    states = [
-              #'wisconsin_deep.csv',
-              #'colorado_deep.csv',
-              #'illinois_deep.csv',
-              #'indiana_deep.csv',
-              #'iowa_deep.csv',
-              #'minnesota_deep.csv',
-              #'missouri_deep.csv',
-              #'ohio_deep.csv',
-              'nebraska_deep.csv',
-              #'indiana_deep.csv',
-              #'kansas_deep.csv',
-             ]
+    states = ['nebraska_deep.csv']
 
     temp_dfs = list()
     for state in states:
@@ -178,38 +168,38 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
 
-    # Using SHAP explainer & Select model number
-    model_no = 1
+   # # Using SHAP explainer & Select model number
+   # model_no = 1
 
-    # Select all data from X
-    X = np.array(X, dtype=float)
-    svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
-    svm_sv = svm_exp(X)
+   # # Select all data from X
+   # X = np.array(X, dtype=float)
+   # svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
+   # svm_sv = svm_exp(X)
 
-    # Counter
-    temp_mean_values = []
+   # # Counter
+   # temp_mean_values = []
 
-    # for each observartion:
-    for observation in svm_sv:
-        mean_shap_ob_val = []
-        # For each feature there is the value:
-        for ob, feat in zip(observation, cols):
-            mean_shap_o_v = np.mean(np.abs(ob.values))
-            mean_shap_ob_val.append(mean_shap_o_v)
-        temp_mean_values.append(mean_shap_ob_val)
+   # # for each observartion:
+   # for observation in svm_sv:
+   #     mean_shap_ob_val = []
+   #     # For each feature there is the value:
+   #     for ob, feat in zip(observation, cols):
+   #         mean_shap_o_v = np.mean(np.abs(ob.values))
+   #         mean_shap_ob_val.append(mean_shap_o_v)
+   #     temp_mean_values.append(mean_shap_ob_val)
 
-    # Averaging shap values across all the observation
-    mean_values = np.mean(temp_mean_values, axis=0)
+   # # Averaging shap values across all the observation
+   # mean_values = np.mean(temp_mean_values, axis=0)
 
-    # Dicitionary
-    dictionary_svm_shap = dict(zip(cols, mean_values))
+   # # Dicitionary
+   # dictionary_svm_shap = dict(zip(cols, mean_values))
 
     # Concatenate all models together 
     performance_df = pd.concat(temp_dfs)
 
     # Export SHAP Feature
-    shap_series = pd.Series(dictionary_svm_shap)
-    shap_series.to_csv("svm_shap_deck.csv")
+   # shap_series = pd.Series(dictionary_svm_shap)
+   # shap_series.to_csv("svm_shap_deck.csv")
 
     return performance_df
 

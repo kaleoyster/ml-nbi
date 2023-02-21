@@ -468,9 +468,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
               'Yes Substructure - No Deck - No Superstructure',
               'No Substructure - No Deck - Yes Superstructure']
 
-    label = 'No Substructure - Yes Deck - No Superstructure'
+    #label = 'No Substructure - Yes Deck - No Superstructure'
     #label = 'Yes Substructure - No Deck - No Superstructure'
-    #label = 'No Substructure - No Deck - Yes Superstructure'
+    label = 'No Substructure - No Deck - Yes Superstructure'
 
     data_scaled = create_labels(data_scaled, label)
     clusters = Counter(data_scaled['label'])

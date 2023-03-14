@@ -76,7 +76,7 @@ def main():
         auc: area under curve
         fpr: false positive rate
         tpr: true positive rate
-        model: Deep learning machine model
+        model: Deep learning machine learning model
     """
     # States
     states = ['nebraska_deep.csv']
@@ -87,6 +87,7 @@ def main():
 
         # Preprocess dataset
         bridge_X, bridge_y, cols =  preprocess(csv_file=state_file)
+
         # Label encoder
         encoder = LabelEncoder()
         y1 = encoder.fit_transform(bridge_y)
@@ -99,6 +100,9 @@ def main():
         kFold = KFold(5, shuffle=True, random_state=1)
         performance = defaultdict(list)
 
+        # Run model
+        run_number = 0
+
         for foldTrainX, foldTestX in kFold.split(bridge_X):
             X_train, y_train, X_test, y_test = bridge_X[foldTrainX], Y[foldTrainX], \
                                             bridge_X[foldTestX], Y[foldTestX]
@@ -109,7 +113,7 @@ def main():
             model = bridge_model(X_train)
 
             # Model fit
-            model.fit(X_train, y_train, batch_size=64, epochs=1)
+            model.fit(X_train, y_train, batch_size=64, epochs=100)
 
             # Compute SHAP Values
             explainer = shap.Explainer(model, bridge_X)
@@ -158,8 +162,12 @@ def main():
                                                          'tpr',
                                                          'shap_values'
                                                         ])
+            run_number = run_number + 1
+            print("running the model:", run_number)
+            break
         temp_dfs.append(temp_df)
         performance_df = pd.concat(temp_dfs)
+        print(performance_df)
         return performance
 
 if __name__=='__main__':

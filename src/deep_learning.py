@@ -99,6 +99,7 @@ def main():
         # K-fold cross validation
         kFold = KFold(5, shuffle=True, random_state=1)
         performance = defaultdict(list)
+        model_accuracy_list = []
 
         # Run model
         run_number = 0
@@ -113,7 +114,7 @@ def main():
             model = bridge_model(X_train)
 
             # Model fit
-            model.fit(X_train, y_train, batch_size=64, epochs=100)
+            model.fit(X_train, y_train, batch_size=64, epochs=1)
 
             # Compute SHAP Values
             explainer = shap.Explainer(model, bridge_X)
@@ -153,6 +154,9 @@ def main():
             performance['tpr'].append(tpr)
             performance['shap_values'].append(mean_shap_features)
 
+            model_accuracy_set = (acc, model)
+            model_accuracy_list.append(model_accuracy_set)
+
             # Create a dataframe
             temp_df = pd.DataFrame(performance, columns=['state',
                                                          'accuracy',
@@ -164,10 +168,12 @@ def main():
                                                         ])
             run_number = run_number + 1
             print("running the model:", run_number)
-            break
+            #break
+
         temp_dfs.append(temp_df)
         performance_df = pd.concat(temp_dfs)
-        print(performance_df)
+
+        best_model = max(model_accuracy_list, key=lambda item: item[0])
         return performance
 
 if __name__=='__main__':

@@ -167,14 +167,14 @@ def main():
                                                          'shap_values'
                                                         ])
             run_number = run_number + 1
-            print("running the model:", run_number)
+            print("running model:", run_number)
             #break
 
         temp_dfs.append(temp_df)
         performance_df = pd.concat(temp_dfs)
 
         best_model = max(model_accuracy_list, key=lambda item: item[0])
-        return performance
+        return performance_df
 
 if __name__=='__main__':
     main()

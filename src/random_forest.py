@@ -110,12 +110,13 @@ def random_forest_utility(train_x, trainy,
     #rf_exp_lime.show_in_notebook(show_table=True)
 
     # SHAP explainer
-    rf_exp = shap.Explainer(model, X_merged)
-    rf_sv = rf_exp(X_merged, check_additivity=False)
-    mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
+    #rf_exp = shap.Explainer(model, X_merged)
+    #rf_sv = rf_exp(X_merged, check_additivity=False)
+    #mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
 
     # Calculating mean shap values also known as SHAP feature importance
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    mean_shap_features = {}
 
     # Predictions
     prediction = model.predict(test_x)

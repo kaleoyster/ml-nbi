@@ -71,14 +71,15 @@ def logistic_regression_utility(train_x, trainy,
     model.fit(train_x, trainy)
 
     # SHAP
-    explainer = shap.Explainer(model, X_merged)
-    shap_values = explainer(X_merged)
-    int_shap = np.array(shap_values.values,
-                        dtype=int)
+    #explainer = shap.Explainer(model, X_merged)
+    #shap_values = explainer(X_merged)
+    #int_shap = np.array(shap_values.values,
+    #                    dtype=int)
 
-    # Calculating mean shap values also known as SHAP feature importance
-    mean_shap = np.mean(abs(shap_values.values), axis=0)
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    ## Calculating mean shap values also known as SHAP feature importance
+    #mean_shap = np.mean(abs(shap_values.values), axis=0)
+    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    mean_shap_features = {}
 
     # Partial dependency
     #features = [0, 1]

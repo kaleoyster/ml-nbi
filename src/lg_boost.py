@@ -92,13 +92,14 @@ def light_boost_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     # SHAP
-    lg_exp = shap.Explainer(model, X_merged)
-    lg_sv = lg_exp(X_merged, check_additivity=False)
-    mean_shap = np.mean(abs(lg_sv.values), 0)
+    #lg_exp = shap.Explainer(model, X_merged)
+    #lg_sv = lg_exp(X_merged, check_additivity=False)
+    #mean_shap = np.mean(abs(lg_sv.values), 0)
 
-    # Calculating mean shap values also known as SHAP feature importance
-    # Have for two classes
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    ## Calculating mean shap values also known as SHAP feature importance
+    ## Have for two classes
+    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    mean_shap_features = {}
 
     # LIME:
     lg_exp_lime = lime_tabular.LimeTabularExplainer(

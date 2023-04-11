@@ -331,6 +331,7 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     # Read CSV
     df = read_csv(csv_file)
 
+    print("printing shape of df:", len(df))
     # Remove null values:
     df = df.dropna(subset=['deck',
                            'substructure',
@@ -339,7 +340,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
                            'supNumberIntervention'
                           ])
 
+    print("Before removing duplicates printing shape of df:", len(df))
     df = remove_duplicates(df)
+    print("printing shape of df:", len(df))
 
     # Remove values encoded as N:
     df = df[~df['deck'].isin(['N'])]
@@ -348,6 +351,8 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     df = df[~df['material'].isin(['N'])]
     df = df[~df['scourCriticalBridges'].isin(['N', 'U', np.nan])]
     df = df[~df['deckStructureType'].isin(['N', 'U'])]
+
+    print("After removing 'N' and 'U' values printing shape of df:", len(df))
 
     # Fill the null values with -1:
     df.snowfall.fillna(value=-1, inplace=True)
@@ -415,21 +420,28 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
 
     cols = columns_normalize
     #data_scaled = normalize(df, columns_normalize)
+    print("[Before scaling] printing shape of df:", len(df))
+
     data_scaled = df[columns_final]
+    print("[After scaling] printing shape of df:", len(df))
 
     temp_columns_hot_encoded = {'material': 'CatMaterial',
-                              "toll": 'CatToll',
-                              "designLoad": 'CatDesignLoad' ,
-                              "deckStructureType": 'CatDeckStructureType',
-                              "typeOfDesign":'CatTypeOfDesign'
+                                "toll": 'CatToll',
+                                "designLoad": 'CatDesignLoad' ,
+                                "deckStructureType": 'CatDeckStructureType',
+                                "typeOfDesign":'CatTypeOfDesign'
                               }
 
     data_scaled.rename(columns=temp_columns_hot_encoded, inplace=True)
     columns_hot_encoded = temp_columns_hot_encoded.values()
     data_scaled = one_hot(data_scaled, columns_hot_encoded)
 
+    print("[Before removing null values] printing shape of df:", len(data_scaled))
     data_scaled = remove_null_values(data_scaled)
+
+    print("[After removing null values] printing shape of df:", len(data_scaled))
     data_scaled = convert_geo_coordinates(data_scaled, ['longitude', 'latitude'])
+
     columns_final = list(data_scaled.columns)
     columns_final.remove('CatMaterial')
     columns_final.remove('CatToll')
@@ -472,7 +484,10 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     #label = 'Yes Substructure - No Deck - No Superstructure'
     label = 'No Substructure - No Deck - Yes Superstructure'
 
+    print("[Before creating labels] length of data scaled", len(data_scaled))
+
     data_scaled = create_labels(data_scaled, label)
+    print("[After creating labels] length of data scaled", len(data_scaled))
     clusters = Counter(data_scaled['label'])
 
     list_of_clusters = list()
@@ -482,6 +497,7 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
             list_of_clusters.append(cluster)
     data_scaled = data_scaled[~data_scaled['label'].isin(list_of_clusters)]
 
+    print("[Before X, Y split] length of data scaled", len(data_scaled))
     X, y = data_scaled[columns_final], data_scaled['label']
     neg = data_scaled[data_scaled['label'] == 'negative']
     pos = data_scaled[data_scaled['label'] == 'positive']
@@ -526,14 +542,17 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     # Sampling Techniques
     #sampling = SMOTE()
     #sampling = SMOTEN(random_state=0)
-    sampling = SMOTENC(random_state=42,
-                      categorical_features=categorical_col)
+    #sampling = SMOTENC(random_state=42,
+    #                  categorical_features=categorical_col)
     #sampling = RandomUnderSampler(sampling_strategy='auto')
 
-    X, y = sampling.fit_resample(X, y)
+    #X, y = sampling.fit_resample(X, y)
 
     # Convert them into arrays
     X = np.array(X)
     y = np.array(y)
 
+    print('length of X', len(X))
     return X, y, columns_final
+
+preprocess()

@@ -116,11 +116,12 @@ def main():
             # Model fit
             model.fit(X_train, y_train, batch_size=64, epochs=1)
 
-            # Compute SHAP Values
-            explainer = shap.Explainer(model, bridge_X)
-            shap_values = explainer(bridge_X)
-            mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
-            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+            ## Compute SHAP Values
+            #explainer = shap.Explainer(model, bridge_X)
+            #shap_values = explainer(bridge_X)
+            #mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
+            #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+            mean_shap_features = {}
 
             # Evaluate model
             loss, acc =  model.evaluate(X_test, y_test, verbose=0)
@@ -167,14 +168,13 @@ def main():
                                                          'shap_values'
                                                         ])
             run_number = run_number + 1
-            print("running model:", run_number)
+            #print("running model:", run_number)
             #break
 
-        temp_dfs.append(temp_df)
-        performance_df = pd.concat(temp_dfs)
-
         best_model = max(model_accuracy_list, key=lambda item: item[0])
-        return performance_df
+        temp_dfs.append(temp_df)
+    performance_df = pd.concat(temp_dfs)
+    return performance_df
 
 if __name__=='__main__':
     main()

@@ -129,6 +129,7 @@ def xgb_utility(train_x, trainy,
     # Shape = (11360, 49)
     mean_shap = np.mean(abs(xgb_sv.values), axis=0)
     mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    mean_shap_features = {}
 
     # LIME:
     #xgb_exp_lime = lime_tabular.LimeTabularExplainer(
@@ -225,7 +226,10 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print("printing performance_df", performance_df)
+    print("printing performance_df:\n", performance_df[['accuracy', 'kappa', 'auc']])
+    print("Accuracy:", np.mean(performance_df['accuracy']))
+    print("kappa:", np.mean(performance_df['kappa']))
+    print("auc:", np.mean(performance_df['auc']))
     return performance_df
 
 if __name__ =='__main__':

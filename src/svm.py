@@ -166,7 +166,7 @@ def main():
                                                          'shap_values',
                                                          'lime_val',
                                                         ])
-            temp_dfs.append(temp_df)
+        temp_dfs.append(temp_df)
 
     ## Select all data from X
     #for model_no in range(5):
@@ -201,8 +201,7 @@ def main():
     #    shap_series.to_csv(filename)
 
     # Concatenate all models together 
-        performance_df = pd.concat(temp_dfs)
-        print(performance_df[['accuracy', 'kappa']])
+    performance_df = pd.concat(temp_dfs)
     return performance_df
 
 if __name__ == '__main__':

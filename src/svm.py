@@ -169,36 +169,36 @@ def main():
         temp_dfs.append(temp_df)
 
     ## Select all data from X
-    #for model_no in range(5):
-    #    X = np.array(X, dtype=float)
-    #    svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
-    #    svm_sv = svm_exp(X)
+    for model_no in range(5):
+        X = np.array(X, dtype=float)
+        svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
+        svm_sv = svm_exp(X)
 
-    #    # Counter
-    #    temp_mean_values = []
+        # Counter
+        temp_mean_values = []
 
-    #    # for each observartion:
-    #    for observation in svm_sv:
-    #        mean_shap_ob_val = []
-    #        # For each feature there is the value:
-    #        for ob, feat in zip(observation, cols):
-    #            mean_shap_o_v = np.mean(np.abs(ob.values))
-    #            mean_shap_ob_val.append(mean_shap_o_v)
-    #        temp_mean_values.append(mean_shap_ob_val)
+        # for each observartion:
+        for observation in svm_sv:
+            mean_shap_ob_val = []
+            # For each feature there is the value:
+            for ob, feat in zip(observation, cols):
+                mean_shap_o_v = np.mean(np.abs(ob.values))
+                mean_shap_ob_val.append(mean_shap_o_v)
+            temp_mean_values.append(mean_shap_ob_val)
 
-    #    # Averaging shap values across all the observation
-    #    mean_values = np.mean(temp_mean_values, axis=0)
+        # Averaging shap values across all the observation
+        mean_values = np.mean(temp_mean_values, axis=0)
 
-    #    # Shap dictionary
-    #    dictionary_svm_shap = dict(zip(cols, mean_values))
+        # Shap dictionary
+        dictionary_svm_shap = dict(zip(cols, mean_values))
 
-    #    # Concatenate all models together 
-    #    performance_df = pd.concat(temp_dfs)
+        # Concatenate all models together 
+        performance_df = pd.concat(temp_dfs)
 
-    #    # Export SHAP Feature
-    #    filename = 'svm_shap_deck' + '_'+ str(model_no) + '.csv'
-    #    shap_series = pd.Series(dictionary_svm_shap)
-    #    shap_series.to_csv(filename)
+        # Export SHAP Feature
+        filename = 'svm_shap_deck' + '_'+ str(model_no) + '.csv'
+        shap_series = pd.Series(dictionary_svm_shap)
+        shap_series.to_csv(filename)
 
     # Concatenate all models together 
     performance_df = pd.concat(temp_dfs)

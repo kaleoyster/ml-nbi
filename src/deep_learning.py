@@ -114,13 +114,13 @@ def main():
             model = bridge_model(X_train)
 
             # Model fit
-            model.fit(X_train, y_train, batch_size=64, epochs=1)
+            model.fit(X_train, y_train, batch_size=64, epochs=100)
 
             ## Compute SHAP Values
-            #explainer = shap.Explainer(model, bridge_X)
-            #shap_values = explainer(bridge_X)
-            #mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
-            #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+            explainer = shap.Explainer(model, bridge_X)
+            shap_values = explainer(bridge_X)
+            mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
+            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
             mean_shap_features = {}
 
             # Evaluate model
@@ -174,6 +174,9 @@ def main():
         best_model = max(model_accuracy_list, key=lambda item: item[0])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print(performance_df['accuracy'])
+    print(performance_df['auc'])
+    print(performance_df['kappa'])
     return performance_df
 
 if __name__=='__main__':

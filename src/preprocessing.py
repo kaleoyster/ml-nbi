@@ -480,9 +480,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
               'Yes Substructure - No Deck - No Superstructure',
               'No Substructure - No Deck - Yes Superstructure']
 
-    #label = 'No Substructure - Yes Deck - No Superstructure'
+    label = 'No Substructure - Yes Deck - No Superstructure'
     #label = 'Yes Substructure - No Deck - No Superstructure'
-    label = 'No Substructure - No Deck - Yes Superstructure'
+    #label = 'No Substructure - No Deck - Yes Superstructure'
 
     print("[Before creating labels] length of data scaled", len(data_scaled))
 
@@ -541,12 +541,12 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
 
     # Sampling Techniques
     #sampling = SMOTE()
-    #sampling = SMOTEN(random_state=0)
+    sampling = SMOTEN(random_state=0)
     #sampling = SMOTENC(random_state=42,
     #                  categorical_features=categorical_col)
     #sampling = RandomUnderSampler(sampling_strategy='auto')
 
-    #X, y = sampling.fit_resample(X, y)
+    X, y = sampling.fit_resample(X, y)
 
     # Convert them into arrays
     X = np.array(X)

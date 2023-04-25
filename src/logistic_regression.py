@@ -167,6 +167,10 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print(performance_df['accuracy'])
+    print(performance_df['auc'])
+    print(performance_df['kappa'])
+
     return performance_df
 
 if __name__ =='__main__':

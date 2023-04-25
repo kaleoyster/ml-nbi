@@ -92,13 +92,13 @@ def light_boost_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     # SHAP
-    #lg_exp = shap.Explainer(model, X_merged)
-    #lg_sv = lg_exp(X_merged, check_additivity=False)
-    #mean_shap = np.mean(abs(lg_sv.values), 0)
+    lg_exp = shap.Explainer(model, X_merged)
+    lg_sv = lg_exp(X_merged, check_additivity=False)
+    mean_shap = np.mean(abs(lg_sv.values), 0)
 
-    ## Calculating mean shap values also known as SHAP feature importance
-    ## Have for two classes
-    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    # Calculating mean shap values also known as SHAP feature importance
+    # Have for two classes
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
     mean_shap_features = {}
 
     # LIME:
@@ -190,6 +190,7 @@ def main():
                                                        ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print(performance_df['shap_values'])
     return performance_df
 
 if __name__ =='__main__':

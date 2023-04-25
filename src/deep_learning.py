@@ -1,3 +1,5 @@
+import sys, getopt
+
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -58,7 +60,7 @@ def bridge_model(X_train):
                   metrics=['accuracy'])
     return model
 
-def main():
+def main(argv):
     """
     Description:
         Performs the modeling (Deep learning) and returns performance metrics
@@ -79,6 +81,13 @@ def main():
         tpr: true positive rate
         model: Deep learning machine learning model
     """
+
+    skipShap = False
+    opts, _ = getopt.getopt(argv, "s", ["skipShap"])
+    for opt, arg in opts:
+        if opt in ("-s", "--skipShap"):
+            skipShap = True
+
     # State
     state = 'nebraska'
     state_file = './data/' + state + '_deep.csv'
@@ -118,14 +127,16 @@ def main():
         model = bridge_model(X_train)
 
         # Model fit
-        model.fit(X_train, y_train, batch_size=64, epochs=1)
+        model.fit(X_train, y_train, batch_size=64, epochs=100)
 
         ## Compute SHAP Values
-        #explainer = shap.Explainer(model, bridge_X)
-        #shap_values = explainer(bridge_X)
-        #mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
-        #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
         mean_shap_features = {}
+        if (not skipShap):
+            explainer = shap.Explainer(model, bridge_X)
+            shap_values = explainer(bridge_X)
+            mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
+            mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+        
 
         # Evaluate model
         loss, acc =  model.evaluate(X_test, y_test, verbose=0)
@@ -187,7 +198,10 @@ def main():
     save_model('saved_model', best_model[1])
     temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+    print(performance_df['accuracy'])
+    print(performance_df['auc'])
+    print(performance_df['kappa'])
     return performance_df
 
 if __name__=='__main__':
-    main()
+    main(sys.argv[1:])

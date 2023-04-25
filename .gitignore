@@ -9,8 +9,11 @@ __pycache__/
 # DS store
 .DS_Store
 .DS_store
+
 # Data
 *.csv
+*.h5
+*.json
 
 # Distribution / packaging
 .Python

@@ -1,0 +1,15 @@
+numpy
+pandas
+pillow
+tensorflow
+scikit-learn
+imbalanced-learn
+tensorflow-addons
+matplotlib
+plotly
+tqdm
+statsmodels
+kneed
+seaborn
+pydotplus
+shap

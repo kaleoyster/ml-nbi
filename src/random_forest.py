@@ -110,13 +110,13 @@ def random_forest_utility(train_x, trainy,
     #rf_exp_lime.show_in_notebook(show_table=True)
 
     # SHAP explainer
-    #rf_exp = shap.Explainer(model, X_merged)
-    #rf_sv = rf_exp(X_merged, check_additivity=False)
-    #mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
+    rf_exp = shap.Explainer(model, X_merged)
+    rf_sv = rf_exp(X_merged, check_additivity=False)
+    mean_shap = np.mean(abs(rf_sv.values), axis=0).mean(1)
 
     # Calculating mean shap values also known as SHAP feature importance
-    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-    mean_shap_features = {}
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    #mean_shap_features = {}
 
     # Predictions
     prediction = model.predict(test_x)
@@ -185,6 +185,45 @@ def main():
                                                     ])
         temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
+
+    # Performance dataframe
+    df_perf = performance_df[['accuracy', 'kappa', 'auc']]
+
+    # Create FPR dataframe
+    fprs = [fpr for fpr in performance_df['fpr']]
+    fprs_df = pd.DataFrame(fprs).transpose()
+    fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Create TPR dataframe
+    tprs = [tpr for tpr in performance_df['tpr']]
+    tprs_df = pd.DataFrame(tprs).transpose()
+    tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Combine the dictionaries for shap values
+    dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
+
+    # Combined dictionary
+    combined_dict = defaultdict()
+    for key in dict1.keys():
+        vals = []
+        val1 = dict1[key]
+        val2 = dict2[key]
+        val3 = dict3[key]
+        val4 = dict4[key]
+        val5 = dict5[key]
+        mean_val = np.mean([val1, val2, val3, val4, val5])
+        combined_dict[key] = mean_val
+
+    # Convert the dictionary into a pandas DataFrame
+    df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
+
+    # Reset index and rename column
+    df = df.reset_index().rename(columns={'index': 'features'})
+    df.to_csv('random_forest_shap_values_superstructure.csv')
+    df_perf.to_csv('random_forest_performance_values_superstructure.csv')
+    fprs_df.to_csv('random_forest_fprs_superstructure.csv')
+    tprs_df.to_csv('random_forest_tprs_superstructure.csv')
+
     return performance_df
 
 if __name__ =='__main__':

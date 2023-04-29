@@ -375,12 +375,12 @@ def main():
     df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
 
     # Reset index and rename column
+    print("Saving results")
     df = df.reset_index().rename(columns={'index': 'features'})
     df.to_csv('decision_tree_shap_values_superstructure.csv')
     df_perf.to_csv('decision_tree_performance_values_superstructure.csv')
     fprs_df.to_csv('decision_tree_fprs_superstructure.csv')
-    tprs_df.to_csv('decision_tree_tprs_superstructure.csv')
-
+    tprs_df.to_csv('decision_tree_tprs_supertructure.csv')
 
     return performance_df
 

@@ -355,14 +355,15 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     print("After removing 'N' and 'U' values printing shape of df:", len(df))
 
     # Fill the null values with -1:
-    df.snowfall.fillna(value=-1, inplace=True)
-    df.precipitation.fillna(value=-1, inplace=True)
-    df.freezethaw.fillna(value=-1, inplace=True)
+    # df.snowfall.fillna(value=-1, inplace=True)
+    #df.snowfall
+    #df.precipitation.fillna(value=-1, inplace=True)
+    #df.freezethaw.fillna(value=-1, inplace=True)
 
     #df.toll.fillna(value=-1, inplace=True)
     df.designatedInspectionFrequency.fillna(value=-1, inplace=True)
     df.deckStructureType.fillna(value=-1, inplace=True)
-    df.typeOfDesign.fillna(value=-1, inplace=True)
+    #df.typeOfDesign.fillna(value=-1, inplace=True)
 
     # Normalize features:
     columns_normalize = [
@@ -480,9 +481,9 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
               'Yes Substructure - No Deck - No Superstructure',
               'No Substructure - No Deck - Yes Superstructure']
 
-    #label = 'No Substructure - Yes Deck - No Superstructure'
+    label = 'No Substructure - Yes Deck - No Superstructure'
     #label = 'Yes Substructure - No Deck - No Superstructure'
-    label = 'No Substructure - No Deck - Yes Superstructure'
+    #label = 'No Substructure - No Deck - Yes Superstructure'
 
     print("[Before creating labels] length of data scaled", len(data_scaled))
 

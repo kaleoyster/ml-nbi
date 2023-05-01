@@ -169,7 +169,7 @@ def main():
         temp_dfs.append(temp_df)
 
     ## Select all data from X
-    for model_no in range(5):
+    for model_no in range(1):
         X = np.array(X, dtype=float)
         svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
         svm_sv = svm_exp(X)

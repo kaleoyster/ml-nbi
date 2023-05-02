@@ -541,7 +541,7 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
         ]
 
     # Sampling Techniques
-    #sampling = SMOTE()
+    sampling = SMOTE()
     #sampling = SMOTEN(random_state=0)
     #sampling = SMOTENC(random_state=42,
     #                  categorical_features=categorical_col)

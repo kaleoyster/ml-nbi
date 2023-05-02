@@ -9,9 +9,10 @@ __pycache__/
 # DS store
 .DS_Store
 .DS_store
+
 # Data
 *.csv
-
+*.ipynb
 # Distribution / packaging
 .Python
 build/

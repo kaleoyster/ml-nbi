@@ -1,3 +1,5 @@
+import sys, getopt
+
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -21,6 +23,8 @@ from prep.prep_nbi import *
 from preprocessing import *
 
 import shap
+
+from exporting.saveToAlexVisualization import save_model, save_features
 
 """
    Follow: https://towardsdatascience.com/deep-learning-model-interpretation-using-shap-a21786e91d16
@@ -56,8 +60,7 @@ def bridge_model(X_train):
                   metrics=['accuracy'])
     return model
 
-
-def main():
+def main(argv):
     """
     Description:
         Performs the modeling (Deep learning) and returns performance metrics
@@ -78,101 +81,122 @@ def main():
         tpr: true positive rate
         model: Deep learning machine learning model
     """
-    # States
-    states = ['nebraska_deep.csv']
+
+    skipShap = False
+    opts, _ = getopt.getopt(argv, "s", ["skipShap"])
+    for opt, arg in opts:
+        if opt in ("-s", "--skipShap"):
+            skipShap = True
+
+    # State
+    state = 'nebraska'
+    state_file = './data/' + state + '_deep.csv'
 
     temp_dfs = list()
-    for state in states:
-        state_file = '../data/' + state
+    # Preprocess dataset
+    bridge_X, bridge_y, cols = preprocess(csv_file=state_file)
+    
+    # Label encoder
+    encoder = LabelEncoder()
+    y1 = encoder.fit_transform(bridge_y)
+    Y = pd.get_dummies(y1).values
 
-        # Preprocess dataset
-        bridge_X, bridge_y, cols =  preprocess(csv_file=state_file)
+    # Conversion
+    bridge_X = np.asarray(bridge_X).astype('float32')
+    savedFeatures = save_features(cols, bridge_X, [float.__class__ for i in cols])
+    if not savedFeatures:
+        print('Failed To Save Features')
 
-        # Label encoder
-        encoder = LabelEncoder()
-        y1 = encoder.fit_transform(bridge_y)
-        Y = pd.get_dummies(y1).values
+    # K-fold cross validation
+    kFold = KFold(5, shuffle=True, random_state=1)
+    performance = defaultdict(list)
+    model_accuracy_list = []
 
-        # Conversion
-        bridge_X = np.asarray(bridge_X).astype('float32')
+    # Run model
+    run_number = 0
 
-        # K-fold cross validation
-        kFold = KFold(5, shuffle=True, random_state=1)
-        performance = defaultdict(list)
-        model_accuracy_list = []
+    for foldTrainX, foldTestX in kFold.split(bridge_X):
+        X_train = bridge_X[foldTrainX]
+        y_train = Y[foldTrainX]
+        X_test = bridge_X[foldTestX]
+        y_test = Y[foldTestX]
 
-        # Run model
-        run_number = 0
+        train_x = np.array(X_train, dtype='f')
 
-        for foldTrainX, foldTestX in kFold.split(bridge_X):
-            X_train, y_train, X_test, y_test = bridge_X[foldTrainX], Y[foldTrainX], \
-                                            bridge_X[foldTestX], Y[foldTestX]
+        # Initialize model
+        model = bridge_model(X_train)
 
-            train_x = np.array(X_train, dtype='f')
+        # Model fit
+        model.fit(X_train, y_train, batch_size=64, epochs=100)
 
-            # Initialize model
-            model = bridge_model(X_train)
-
-            # Model fit
-            model.fit(X_train, y_train, batch_size=64, epochs=100)
-
-            ## Compute SHAP Values
+        ## Compute SHAP Values
+        mean_shap_features = {}
+        if (not skipShap):
             explainer = shap.Explainer(model, bridge_X)
             shap_values = explainer(bridge_X)
             mean_shap = np.mean(abs(shap_values.values), axis=0).mean(1)
             mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-            #mean_shap_features = {}
+        
 
-            # Evaluate model
-            loss, acc =  model.evaluate(X_test, y_test, verbose=0)
+        # Evaluate model
+        loss, acc =  model.evaluate(X_test, y_test, verbose=0)
 
-            # Predict test model
-            y_pred = model.predict(X_test)
-            y_pred_r = y_pred[::, 1]
-            y_test_r = y_test[::, 1]
+        # Predict test model
+        y_pred = model.predict(X_test)
+        y_pred_r = y_pred[::, 1]
+        y_test_r = y_test[::, 1]
 
-            # Compute metrics
-            kappa_metric = tfa.metrics.CohenKappa(num_classes=2,
-                                                  sparse_labels=False)
+        # Compute metrics
+        kappa_metric = tfa.metrics.CohenKappa(num_classes=2,
+                                                sparse_labels=False)
 
-            kappa_metric.update_state(y_test_r, y_pred_r)
-            kappa_result = kappa_metric.result()
-            _kappa = kappa_result.numpy()
+        kappa_metric.update_state(y_test_r, y_pred_r)
+        kappa_result = kappa_metric.result()
+        _kappa = kappa_result.numpy()
 
-            # Computing AUC and ROC value
-            fpr, tpr, threshold_keras = roc_curve(y_test_r, y_pred_r)
-            _auc = auc(fpr, tpr)
+        # Computing AUC and ROC value
+        fpr, tpr, threshold_keras = roc_curve(y_test_r, y_pred_r)
+        _auc = auc(fpr, tpr)
 
-            actual = np.argmax(y_test, axis=1)
-            predict = np.argmax(y_pred, axis=1)
+        actual = np.argmax(y_test, axis=1)
+        predict = np.argmax(y_pred, axis=1)
 
-            state_name = state[:-9]
-            performance['state'].append(state_name)
-            performance['accuracy'].append(acc)
-            performance['kappa'].append(_kappa)
-            performance['auc'].append(_auc)
-            performance['fpr'].append(fpr)
-            performance['tpr'].append(tpr)
-            performance['shap_values'].append(mean_shap_features)
+        state_name = state
+        performance['state'].append(state_name)
+        performance['accuracy'].append(acc)
+        performance['kappa'].append(_kappa)
+        performance['auc'].append(_auc)
+        performance['fpr'].append(fpr)
+        performance['tpr'].append(tpr)
+        performance['shap_values'].append(mean_shap_features)
 
-            model_accuracy_set = (acc, model)
-            model_accuracy_list.append(model_accuracy_set)
+        model_accuracy_set = (acc, model)
+        model_accuracy_list.append(model_accuracy_set)
 
-            # Create a dataframe
-            temp_df = pd.DataFrame(performance, columns=['state',
-                                                         'accuracy',
-                                                         'kappa',
-                                                         'auc',
-                                                         'fpr',
-                                                         'tpr',
-                                                         'shap_values'
-                                                        ])
-            run_number = run_number + 1
-            #print("running model:", run_number)
-            #break
+        # Create a dataframe
+        temp_df = pd.DataFrame(performance, columns=['state',
+                                                        'accuracy',
+                                                        'kappa',
+                                                        'auc',
+                                                        'fpr',
+                                                        'tpr',
+                                                        'shap_values'
+                                                    ])
+        run_number = run_number + 1
+        #print("running model:", run_number)
+        #break
 
-        best_model = max(model_accuracy_list, key=lambda item: item[0])
-        temp_dfs.append(temp_df)
+    best_model = max(model_accuracy_list, key=lambda item: item[0])
+    #input = tf.constant([
+    #    [float(i) for i in range(1, 50)]
+    #])
+    #print(input)
+    #print(input.shape)
+    #result = best_model[1].predict([input])
+    #print(result)
+    #print(result.shape)
+    save_model('saved_model', best_model[1])
+    temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
 
     # Performance dataframe
@@ -216,4 +240,4 @@ def main():
     return performance_df
 
 if __name__=='__main__':
-    main()
+    main(sys.argv[1:])

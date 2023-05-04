@@ -555,3 +555,5 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
 
     print('length of X', len(X))
     return X, y, columns_final
+
+#preprocess()

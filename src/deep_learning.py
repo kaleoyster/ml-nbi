@@ -198,9 +198,45 @@ def main(argv):
     save_model('saved_model', best_model[1])
     temp_dfs.append(temp_df)
     performance_df = pd.concat(temp_dfs)
-    print(performance_df['accuracy'])
-    print(performance_df['auc'])
-    print(performance_df['kappa'])
+
+    # Performance dataframe
+    df_perf = performance_df[['accuracy', 'kappa', 'auc']]
+
+    # Create FPR dataframe
+    fprs = [fpr for fpr in performance_df['fpr']]
+    fprs_df = pd.DataFrame(fprs).transpose()
+    fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Create TPR dataframe
+    tprs = [tpr for tpr in performance_df['tpr']]
+    tprs_df = pd.DataFrame(tprs).transpose()
+    tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Combine the dictionaries for shap values
+    dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
+
+    # Combined dictionary
+    combined_dict = defaultdict()
+    for key in dict1.keys():
+        vals = []
+        val1 = dict1[key]
+        val2 = dict2[key]
+        val3 = dict3[key]
+        val4 = dict4[key]
+        val5 = dict5[key]
+        mean_val = np.mean([val1, val2, val3, val4, val5])
+        combined_dict[key] = mean_val
+
+    # Convert the dictionary into a pandas DataFrame
+    df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
+
+    # Reset index and rename column
+    df = df.reset_index().rename(columns={'index': 'features'})
+    df.to_csv('deep_learning_shap_values_deck.csv')
+    df_perf.to_csv('deep_learning_performance_values_deck.csv')
+    fprs_df.to_csv('deep_learning_fprs_deck.csv')
+    tprs_df.to_csv('deep_learning_tprs_deck.csv')
+
     return performance_df
 
 if __name__=='__main__':

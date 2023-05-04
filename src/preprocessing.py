@@ -355,14 +355,15 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     print("After removing 'N' and 'U' values printing shape of df:", len(df))
 
     # Fill the null values with -1:
-    df.snowfall.fillna(value=-1, inplace=True)
-    df.precipitation.fillna(value=-1, inplace=True)
-    df.freezethaw.fillna(value=-1, inplace=True)
+    # df.snowfall.fillna(value=-1, inplace=True)
+    #df.snowfall
+    #df.precipitation.fillna(value=-1, inplace=True)
+    #df.freezethaw.fillna(value=-1, inplace=True)
 
     #df.toll.fillna(value=-1, inplace=True)
     df.designatedInspectionFrequency.fillna(value=-1, inplace=True)
     df.deckStructureType.fillna(value=-1, inplace=True)
-    df.typeOfDesign.fillna(value=-1, inplace=True)
+    #df.typeOfDesign.fillna(value=-1, inplace=True)
 
     # Normalize features:
     columns_normalize = [
@@ -540,13 +541,13 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
         ]
 
     # Sampling Techniques
-    #sampling = SMOTE()
-    sampling = SMOTEN(random_state=0)
+    sampling = SMOTE()
+    #sampling = SMOTEN(random_state=0)
     #sampling = SMOTENC(random_state=42,
     #                  categorical_features=categorical_col)
     #sampling = RandomUnderSampler(sampling_strategy='auto')
 
-    X, y = sampling.fit_resample(X, y)
+    #X, y = sampling.fit_resample(X, y)
 
     # Convert them into arrays
     X = np.array(X)

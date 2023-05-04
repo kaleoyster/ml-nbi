@@ -71,15 +71,15 @@ def logistic_regression_utility(train_x, trainy,
     model.fit(train_x, trainy)
 
     # SHAP
-    #explainer = shap.Explainer(model, X_merged)
-    #shap_values = explainer(X_merged)
-    #int_shap = np.array(shap_values.values,
-    #                    dtype=int)
+    explainer = shap.Explainer(model, X_merged)
+    shap_values = explainer(X_merged)
+    int_shap = np.array(shap_values.values,
+                        dtype=int)
 
-    ## Calculating mean shap values also known as SHAP feature importance
-    #mean_shap = np.mean(abs(shap_values.values), axis=0)
-    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-    mean_shap_features = {}
+    # Calculating mean shap values also known as SHAP feature importance
+    mean_shap = np.mean(abs(shap_values.values), axis=0)
+    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    #mean_shap_features = {}
 
     # Partial dependency
     #features = [0, 1]
@@ -166,10 +166,45 @@ def main():
                                                         'shap_values',
                                                     ])
         temp_dfs.append(temp_df)
+
+    # Performance dataframe
     performance_df = pd.concat(temp_dfs)
-    print(performance_df['accuracy'])
-    print(performance_df['auc'])
-    print(performance_df['kappa'])
+    df_perf = performance_df[['accuracy', 'kappa', 'auc']]
+
+    # Create FPR dataframe
+    fprs = [fpr for fpr in performance_df['fpr']]
+    fprs_df = pd.DataFrame(fprs).transpose()
+    fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Create TPR dataframe
+    tprs = [tpr for tpr in performance_df['tpr']]
+    tprs_df = pd.DataFrame(tprs).transpose()
+    tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Combine the dictionaries for shap values
+    dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
+
+    # Combined dictionary
+    combined_dict = defaultdict()
+    for key in dict1.keys():
+        vals = []
+        val1 = dict1[key]
+        val2 = dict2[key]
+        val3 = dict3[key]
+        val4 = dict4[key]
+        val5 = dict5[key]
+        mean_val = np.mean([val1, val2, val3, val4, val5])
+        combined_dict[key] = mean_val
+
+    # Convert the dictionary into a pandas DataFrame
+    df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
+
+    # Reset index and rename column
+    df = df.reset_index().rename(columns={'index': 'features'})
+    df.to_csv('logistic_regression_shap_values_deck.csv')
+    df_perf.to_csv('logistic_regression_performance_values_deck.csv')
+    fprs_df.to_csv('logistic_regression_fprs_deck.csv')
+    tprs_df.to_csv('logistic_regression_tprs_deck.csv')
 
     return performance_df
 

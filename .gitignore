@@ -15,6 +15,7 @@ __pycache__/
 *.h5
 *.json
 
+*.ipynb
 # Distribution / packaging
 .Python
 build/

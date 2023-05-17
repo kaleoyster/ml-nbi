@@ -169,39 +169,77 @@ def main():
         temp_dfs.append(temp_df)
 
     ## Select all data from X
-    for model_no in range(1):
+    for model_no in range(5):
         X = np.array(X, dtype=float)
-        svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
-        svm_sv = svm_exp(X)
+        #svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
+        #svm_sv = svm_exp(X)
 
-        # Counter
-        temp_mean_values = []
+        ## Counter
+        #temp_mean_values = []
 
-        # for each observartion:
-        for observation in svm_sv:
-            mean_shap_ob_val = []
-            # For each feature there is the value:
-            for ob, feat in zip(observation, cols):
-                mean_shap_o_v = np.mean(np.abs(ob.values))
-                mean_shap_ob_val.append(mean_shap_o_v)
-            temp_mean_values.append(mean_shap_ob_val)
+        ## for each observartion:
+        #for observation in svm_sv:
+        #    mean_shap_ob_val = []
+        #    # For each feature there is the value:
+        #    for ob, feat in zip(observation, cols):
+        #        mean_shap_o_v = np.mean(np.abs(ob.values))
+        #        mean_shap_ob_val.append(mean_shap_o_v)
+        #    temp_mean_values.append(mean_shap_ob_val)
 
-        # Averaging shap values across all the observation
-        mean_values = np.mean(temp_mean_values, axis=0)
+        ## Averaging shap values across all the observation
+        #mean_values = np.mean(temp_mean_values, axis=0)
 
         # Shap dictionary
-        dictionary_svm_shap = dict(zip(cols, mean_values))
+        #dictionary_svm_shap = dict(zip(cols, mean_values))
 
         # Concatenate all models together 
-        performance_df = pd.concat(temp_dfs)
+        #performance_df = pd.concat(temp_dfs)
 
         # Export SHAP Feature
-        filename = 'svm_shap_deck' + '_'+ str(model_no) + '.csv'
-        shap_series = pd.Series(dictionary_svm_shap)
-        shap_series.to_csv(filename)
+        #filename = 'svm_shap_deck' + '_'+ str(model_no) + '.csv'
+        #shap_series = pd.Series(dictionary_svm_shap)
+        #shap_series.to_csv(filename)
 
     # Concatenate all models together 
     performance_df = pd.concat(temp_dfs)
+    df_perf = performance_df[['accuracy', 'kappa', 'auc']]
+
+    # Create FPR dataframe
+    fprs = [fpr for fpr in performance_df['fpr']]
+    fprs_df = pd.DataFrame(fprs).transpose()
+    fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Create TPR dataframe
+    tprs = [tpr for tpr in performance_df['tpr']]
+    tprs_df = pd.DataFrame(tprs).transpose()
+    tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+
+    # Combine the dictionaries for shap values
+    #dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
+
+    # Combined dictionary
+    #combined_dict = defaultdict()
+    #for key in dict1.keys():
+    #    vals = []
+    #    val1 = dict1[key]
+    #    val2 = dict2[key]
+    #    val3 = dict3[key]
+    #    val4 = dict4[key]
+    #    val5 = dict5[key]
+    #    mean_val = np.mean([val1, val2, val3, val4, val5])
+    #    combined_dict[key] = mean_val
+
+    # Convert the dictionary into a pandas DataFrame
+    #df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
+
+    # Reset index and rename column
+    #df = df.reset_index().rename(columns={'index': 'features'})
+
+    #df.to_csv('svm_shap_values_substructure.csv')
+    df_perf.to_csv('svm_performance_values_deck.csv')
+    fprs_df.to_csv('svm_fprs_deck.csv')
+    tprs_df.to_csv('svm_tprs_deck.csv')
+
     return performance_df
 
 if __name__ == '__main__':

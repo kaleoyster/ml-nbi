@@ -245,7 +245,7 @@ def one_hot(_df, columns):
 
         #TODO: Next, we have to figure out how do we scale these to other material
         # One-hot encoding categorial variable with high cardinality
-        # Cause inefficieny in tree-based ensembles.
+        # Cause inefficiency in tree-based ensembles.
         # Continuous variables will be given more importance 
         # than the dummy variables by the algorithm
         # which will obscure the order of feature
@@ -355,7 +355,7 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
     print("After removing 'N' and 'U' values printing shape of df:", len(df))
 
     # Fill the null values with -1:
-    # df.snowfall.fillna(value=-1, inplace=True)
+    #df.snowfall.fillna(value=-1, inplace=True)
     #df.snowfall
     #df.precipitation.fillna(value=-1, inplace=True)
     #df.freezethaw.fillna(value=-1, inplace=True)
@@ -482,8 +482,8 @@ def preprocess(csv_file = '../data/nebraska_deep.csv'):
               'No Substructure - No Deck - Yes Superstructure']
 
     #label = 'No Substructure - Yes Deck - No Superstructure'
-    #label = 'Yes Substructure - No Deck - No Superstructure'
-    label = 'No Substructure - No Deck - Yes Superstructure'
+    label = 'Yes Substructure - No Deck - No Superstructure'
+    #label = 'No Substructure - No Deck - Yes Superstructure'
 
     print("[Before creating labels] length of data scaled", len(data_scaled))
     data_scaled = create_labels(data_scaled, label)

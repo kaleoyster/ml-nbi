@@ -43,7 +43,7 @@ from sklearn.metrics import auc
 from preprocessing import *
 
 def gradient_boosting_utility(train_x, trainy,
-                 test_x, testy, cols, max_depth=7):
+                 test_x, testy, cols, max_depth=30):
     """
     Description:
         Performs the modeling and returns performance metrics
@@ -197,7 +197,7 @@ def main():
     # Combine the dictionaries for shap values
     dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
 
-    # Combined dictionary
+    # Combine dictionary
     combined_dict = defaultdict()
     for key in dict1.keys():
         vals = []

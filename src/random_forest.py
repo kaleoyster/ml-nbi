@@ -43,7 +43,7 @@ from sklearn.metrics import auc
 from preprocessing import *
 
 def random_forest_utility(train_x, trainy,
-                 test_x, testy, cols, max_depth=7):
+                 test_x, testy, cols, max_depth=30):
     """
     Description:
         Performs the modeling and returns performance metrics
@@ -160,7 +160,7 @@ def main():
 
             # Training
             gacc, gcm, gcr, gkappa, gauc, gfpr, gtpr, gmodel, fi, mean_shap_features = random_forest_utility(trainX, trainy,
-                     testX, testy, cols, max_depth=10)
+                     testX, testy, cols, max_depth=30)
             state_name = state[:-9]
             performance['state'].append(state_name)
             performance['accuracy'].append(gacc)

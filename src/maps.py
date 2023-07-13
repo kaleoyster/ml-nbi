@@ -7,6 +7,20 @@ in the NBI coding guide.
 from collections import defaultdict
 
 mapDict = defaultdict()
+
+mapDict['CatOwner'] = {
+                         1:'State Highway',
+                         2:'County Highway',
+                         3:'Town Highway',
+                         4:'City Highway',
+                         21:'Other State',
+                         25:'Other Local',
+                         27:'Railroad',
+                         62:'Bureau of Indian Affiars',
+                         69:'Bureau of Land Management',
+                         70:'Corps of Engineers'
+                     }
+
 mapDict['CatMaterial'] = {
                          1:'Concrete',
                          2:'ConcreteContinuous',
@@ -27,6 +41,20 @@ mapDict['CatToll'] = {
                     4:'OnInterstateToll',
                     5:'TollBridgeSegementUnder',
                  }
+
+mapDict['CatWearingSurface'] = {
+                        '1':'Monolithic Concrete',
+                        '2':'Integral Concrete',
+                        '3':'Latex Concrete',
+                        '4':'Low Slump Concrete',
+                        '5':'Epoxy Overlay',
+                        '6':'Bituminous',
+                        '7':'Wood or Timber',
+                        '8':'Gravel',
+                        '9':'Other',
+                        '0':'None',
+                        'N':'Not applicable'
+                }
 
 mapDict['CatDesignLoad'] = {
                          1:'H10',

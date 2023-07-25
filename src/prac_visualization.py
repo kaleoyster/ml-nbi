@@ -205,7 +205,6 @@ def main():
     # Reset index and rename column
     df = df.reset_index().rename(columns={'index': 'features'})
     print(df_perf)
-
     #df.to_csv('logistic_regression_shap_values_deck.csv')
     #df_perf.to_csv('logistic_regression_performance_values_deck.csv')
     #fprs_df.to_csv('logistic_regression_fprs_deck.csv')

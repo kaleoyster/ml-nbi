@@ -16,8 +16,12 @@ import pydotplus
 import lightgbm as lgb
 
 # Permutation feature importance
+import matplotlib.pyplot as plt
 from sklearn.inspection import permutation_importance
 from sklearn.inspection import PartialDependenceDisplay
+from sklearn.inspection import plot_partial_dependence
+from mpl_toolkits.mplot3d import Axes3D
+
 
 # SHAP
 import shap
@@ -40,6 +44,79 @@ from sklearn.metrics import auc
 
 # Preprocessing
 from preprocessing import *
+
+def plot_samples(X_train, Y_train, feature_names, classifier):
+    """
+    Plot samples across all three dimensions
+    """
+    # Dataframes
+    df = pd.DataFrame(X_train, columns=feature_names)
+    df = df.apply(pd.to_numeric, errors='coerce')
+
+    # Map classes
+    map_class = {
+        1: True,
+        0: False,
+    }
+
+    y_train = []
+    # Target class
+    for target in Y_train:
+        y_train.append(map_class[target])
+
+    # Create scatter plots for each pair of features
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    feature_1 = feature_names[0]
+    feature_2 = feature_names[1]
+    feature_3 = feature_names[2]
+
+    print("Printing the feature: \n")
+    print(feature_1, feature_2, feature_3)
+
+    # Feature1 vs Feature2
+    title = feature_1 + ' Vs. '  + feature_2
+    axes[0].scatter(df[feature_1], df[feature_2], c=y_train, cmap='viridis', alpha=0.5)
+    axes[0].set_xlabel(feature_1)
+    axes[0].set_ylabel(feature_2)
+    axes[0].set_title(title)
+
+    # Feature2 vs Feature3
+    title = feature_2 + ' Vs. ' + feature_3
+    axes[1].scatter(df[feature_2], df[feature_3], c=y_train, cmap='viridis', alpha=0.5)
+    axes[1].set_xlabel(feature_2)
+    axes[1].set_ylabel(feature_3)
+    axes[1].set_title(title)
+
+    # Feature1 vs Feature3
+    title = feature_1 + ' Vs. ' + feature_3
+    axes[2].scatter(df[feature_1], df[feature_3], c=y_train, cmap='viridis', alpha=0.5)
+    axes[2].set_xlabel(feature_1)
+    axes[2].set_ylabel(feature_3)
+    axes[2].set_title(title)
+
+    plt.tight_layout()
+
+    #plt.show()
+    plt.savefig("sample_plot_lg_boost.png", dpi=300)
+
+
+    print("Printing the dataframes:\n")
+    print(df.head())
+
+    # Specify the features for which you want to create the 3D PDP plot
+    features_to_plot = [(0, 1), (1, 2), (0, 2)]  # Pairs of feature indices for 3D PDP plot
+
+    # Create the 3D PDP plot
+    fig = plt.figure(figsize=(12, 8))
+    plot_partial_dependence(classifier, df, features_to_plot, grid_resolution=100)
+
+    plt.subplots_adjust(top=0.9)  # Adjust the position of the title
+    plt.suptitle('3D Partial Dependency Plot (Light Boost)', fontsize=16)
+
+    #plt.show()
+    plt.savefig("PDP_plot_lg_boost.png", dpi=300)
+
 
 def light_boost_utility(train_x, trainy,
                  test_x, testy, cols):
@@ -92,14 +169,14 @@ def light_boost_utility(train_x, trainy,
     #print("PartialDependenceDisplay Working OK")
 
     # SHAP
-    lg_exp = shap.Explainer(model, X_merged)
-    lg_sv = lg_exp(X_merged, check_additivity=False)
-    mean_shap = np.mean(abs(lg_sv.values), 0)
+    #lg_exp = shap.Explainer(model, X_merged)
+    #lg_sv = lg_exp(X_merged, check_additivity=False)
+    #mean_shap = np.mean(abs(lg_sv.values), 0)
 
     # Calculating mean shap values also known as SHAP feature importance
     # Have for two classes
-    mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
-    #mean_shap_features = {}
+    #mean_shap_features = {column:shap_v for column, shap_v in zip(cols, mean_shap)}
+    mean_shap_features = {}
 
     # LIME:
     lg_exp_lime = lime_tabular.LimeTabularExplainer(
@@ -133,7 +210,7 @@ def light_boost_utility(train_x, trainy,
     kappa = cohen_kappa_score(prediction, testy,
                               weights='quadratic')
 
-    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, mean_shap_features
+    return _acc, _cm, _cr, kappa, _auc, fpr, tpr, model, mean_shap_features
 
 def main():
 
@@ -167,8 +244,7 @@ def main():
             trainX, trainy, testX, testy = X[foldTrainX], y[foldTrainX], \
                                               X[foldTestX], y[foldTestX]
             # Training 
-            acc, cm, cr, kappa, auc, fpr, tpr, mean_shap_features = light_boost_utility(trainX, trainy, testX, testy, cols)
-
+            acc, cm, cr, kappa, auc, fpr, tpr, model, mean_shap_features = light_boost_utility(trainX, trainy, testX, testy, cols)
             state_name = state[:-9]
             performance['state'].append(state_name)
             performance['accuracy'].append(acc)
@@ -190,42 +266,44 @@ def main():
                                                          'confusion_matrix',
                                                          'shap_values',
                                                        ])
+            break
         temp_dfs.append(temp_df)
+    plot_samples(trainX, trainy, cols, model)
 
     # Performance dataframe
     performance_df = pd.concat(temp_dfs)
     df_perf = performance_df[['accuracy', 'kappa', 'auc']]
 
-    # Create FPR dataframe
-    fprs = [fpr for fpr in performance_df['fpr']]
-    fprs_df = pd.DataFrame(fprs).transpose()
-    fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+    ## Create FPR dataframe
+    #fprs = [fpr for fpr in performance_df['fpr']]
+    #fprs_df = pd.DataFrame(fprs).transpose()
+    #fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
 
-    # Create TPR dataframe
-    tprs = [tpr for tpr in performance_df['tpr']]
-    tprs_df = pd.DataFrame(tprs).transpose()
-    tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+    ## Create TPR dataframe
+    #tprs = [tpr for tpr in performance_df['tpr']]
+    #tprs_df = pd.DataFrame(tprs).transpose()
+    #tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
 
-    # Combine the dictionaries for shap values
-    dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
+    ## Combine the dictionaries for shap values
+    #dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']
 
-    # Combined dictionary
-    combined_dict = defaultdict()
-    for key in dict1.keys():
-        vals = []
-        val1 = dict1[key]
-        val2 = dict2[key]
-        val3 = dict3[key]
-        val4 = dict4[key]
-        val5 = dict5[key]
-        mean_val = np.mean([val1, val2, val3, val4, val5])
-        combined_dict[key] = mean_val
+    ## Combined dictionary
+    #combined_dict = defaultdict()
+    #for key in dict1.keys():
+    #    vals = []
+    #    val1 = dict1[key]
+    #    val2 = dict2[key]
+    #    val3 = dict3[key]
+    #    val4 = dict4[key]
+    #    val5 = dict5[key]
+    #    mean_val = np.mean([val1, val2, val3, val4, val5])
+    #    combined_dict[key] = mean_val
 
-    # Convert the dictionary into a pandas DataFrame
-    df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
+    ## Convert the dictionary into a pandas DataFrame
+    #df = pd.DataFrame.from_dict(combined_dict, orient='index', columns=['values'])
 
-    # Reset index and rename column
-    df = df.reset_index().rename(columns={'index': 'features'})
+    ## Reset index and rename column
+    #df = df.reset_index().rename(columns={'index': 'features'})
     print(df_perf)
     #df.to_csv('lg_boost_shap_values_superstructure.csv')
     #df_perf.to_csv('lg_boost_performance_values_superstructure.csv')

@@ -23,7 +23,12 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 # PDP
+import matplotlib.pyplot as plt
 from sklearn.inspection import PartialDependenceDisplay
+from sklearn.inspection import permutation_importance
+from sklearn.inspection import plot_partial_dependence
+from mpl_toolkits.mplot3d import Axes3D
+
 
 # SHAP
 import shap
@@ -46,8 +51,71 @@ from sklearn.metrics import auc
 # Preprocessing
 from preprocessing import *
 
-#def visualize_support_vectors(support_vectors):
-#    ""
+def plot_samples(X_train, Y_train, feature_names, classifier):
+    """
+    Plot samples across all three dimensions
+    """
+    # Dataframes
+    df = pd.DataFrame(X_train, columns=feature_names)
+
+    # Map classes
+    map_class = {
+        'positive': True,
+        'negative': False,
+    }
+
+    y_train = []
+    # Target class
+    for target in Y_train:
+        y_train.append(map_class[target])
+
+    # Create scatter plots for each pair of features
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    feature_1 = feature_names[0]
+    feature_2 = feature_names[1]
+    feature_3 = feature_names[2]
+
+    # Feature1 vs Feature2
+    title = feature_1 + ' Vs. '  + feature_2
+    axes[0].scatter(df[feature_1], df[feature_2], c=y_train, cmap='viridis', alpha=0.5)
+    axes[0].set_xlabel(feature_1)
+    axes[0].set_ylabel(feature_2)
+    axes[0].set_title(title)
+
+    # Feature2 vs Feature3
+    title = feature_2 + ' Vs. ' + feature_3
+    axes[1].scatter(df[feature_2], df[feature_3], c=y_train, cmap='viridis', alpha=0.5)
+    axes[1].set_xlabel(feature_2)
+    axes[1].set_ylabel(feature_3)
+    axes[1].set_title(title)
+
+    # Feature1 vs Feature3
+    title = feature_1 + ' Vs. ' + feature_3
+    axes[2].scatter(df[feature_1], df[feature_3], c=y_train, cmap='viridis', alpha=0.5)
+    axes[2].set_xlabel(feature_1)
+    axes[2].set_ylabel(feature_3)
+    axes[2].set_title(title)
+
+    plt.tight_layout()
+
+    #plt.show()
+    plt.savefig("sample_plot_svm.png", dpi=300)
+
+    # Specify the features for which you want to create the 3D PDP plot
+    features_to_plot = [(0, 1), (1, 2), (0, 2)]  # Pairs of feature indices for 3D PDP plot
+
+    # Create the 3D PDP plot
+    fig = plt.figure(figsize=(12, 8))
+    plot_partial_dependence(classifier, df, features_to_plot, grid_resolution=50)
+
+    plt.subplots_adjust(top=0.9)  # Adjust the position of the title
+    plt.suptitle('3D Partial Dependency Plot', fontsize=16)
+
+    #plt.show()
+    plt.savefig("PDP_plot_svm.png", dpi=300)
+
+
 
 def support_vector_utility(train_x, trainy,
                  test_x, testy, cols):
@@ -181,12 +249,14 @@ def main():
                                                          'shap_values',
                                                          'lime_val',
                                                         ])
+            break
+        plot_samples(trainX, trainy, cols, gmodel)
         temp_dfs.append(temp_df)
 
     ## Select all data from X
-    for model_no in range(5):
-        X = np.array(X, dtype=float)
-        #svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
+    #for model_no in range(5):
+    #    X = np.array(X, dtype=float)
+    #    #svm_exp = shap.Explainer(gmodels[model_no].predict_proba, X)
         #svm_sv = svm_exp(X)
 
         ## Counter
@@ -220,14 +290,14 @@ def main():
     df_perf = performance_df[['accuracy', 'kappa', 'auc']]
 
     # Create FPR dataframe
-    fprs = [fpr for fpr in performance_df['fpr']]
-    fprs_df = pd.DataFrame(fprs).transpose()
-    fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+    #fprs = [fpr for fpr in performance_df['fpr']]
+    #fprs_df = pd.DataFrame(fprs).transpose()
+    #fprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
 
-    # Create TPR dataframe
-    tprs = [tpr for tpr in performance_df['tpr']]
-    tprs_df = pd.DataFrame(tprs).transpose()
-    tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
+    ## Create TPR dataframe
+    #tprs = [tpr for tpr in performance_df['tpr']]
+    #tprs_df = pd.DataFrame(tprs).transpose()
+    #tprs_df.columns=['k1', 'k2', 'k3', 'k4', 'k5']
 
     # Combine the dictionaries for shap values
     #dict1, dict2, dict3, dict4, dict5 = performance_df['shap_values']

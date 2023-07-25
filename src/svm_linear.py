@@ -77,8 +77,8 @@ def support_vector_utility(train_x, trainy,
     # Model initialization
     model = make_pipeline(StandardScaler(),
                           SVC(
-                              #kernel='linear',
-                              #gamma='auto',
+                              kernel='linear',
+                              gamma='auto',
                           probability=True))
 
     svc_model = model.named_steps['svc']
@@ -251,9 +251,9 @@ def main():
     #df = df.reset_index().rename(columns={'index': 'features'})
 
     #df.to_csv('svm_shap_values_substructure.csv')
-    #df_perf.to_csv('svm_performance_values_deck.csv')
-    #fprs_df.to_csv('svm_fprs_deck.csv')
-    #tprs_df.to_csv('svm_tprs_deck.csv')
+    #df_perf.to_csv('svm_linear_performance_values_deck.csv')
+    #fprs_df.to_csv('svm_linear_fprs_deck.csv')
+    #tprs_df.to_csv('svm_linear_tprs_deck.csv')
     print("Performance:")
     print(df_perf)
 
